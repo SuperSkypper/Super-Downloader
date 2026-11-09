@@ -18,15 +18,15 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 
 /**
- * A engrenagem da fileira de qualidade: qual qualidade vale para SHARE.
+ * The gear in the quality row: which quality applies to SHARE.
  *
- * O preset de QUALITY na tela governa o link colado no campo; um video
- * compartilhado de outro lado costuma ter outra necessidade (mandar no WhatsApp,
- * guardar o melhor possivel), entao aqui se escolhe a qualidade de share.
+ * The QUALITY preset on the screen governs the link pasted into the field; a video
+ * shared from elsewhere usually has a different need (send on WhatsApp, keep the
+ * best possible), so the share quality is chosen here.
  *
- * Um painel so: fundo do tema, a linha do toggle e os chips direto nele. Antes
- * havia painel > cartao > linha (tres caixas uma dentro da outra) para mostrar
- * um toggle e tres chips — o mesmo espaco com tres bordas.
+ * A single panel: theme background, the toggle row and the chips right on it. Before,
+ * there was panel > card > row (three boxes one inside the other) just to show
+ * a toggle and three chips — the same space with three borders.
  */
 class ShareQualityDialog(
     private val host: Activity,
@@ -75,7 +75,7 @@ class ShareQualityDialog(
     private fun rebuild() {
         body.removeAllViews()
 
-        // Linha do toggle: a moldura E o estado, e a linha inteira alterna.
+        // Toggle row: the frame IS the state, and the whole row toggles.
         body.addView(
             LinearLayout(host).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -91,8 +91,8 @@ class ShareQualityDialog(
                 setOnClickListener {
                     prefs.shareQualityEnabled = !prefs.shareQualityEnabled
                     if (prefs.shareQualityEnabled && prefs.shareQualityKey.isBlank()) {
-                        // Nasce igual ao preset da tela: ligar o toggle nao muda
-                        // o comportamento ate o usuario escolher outra coisa.
+                        // Starts equal to the on-screen preset: turning the toggle on does not
+                        // change behavior until the user picks something else.
                         prefs.shareQualityKey = prefs.effectiveQuality().key
                     }
                     onChanged()
@@ -132,7 +132,7 @@ class ShareQualityDialog(
         )
 
         if (prefs.shareQualityEnabled) {
-            // Os mesmos chips de 34dp da tela principal.
+            // The same 34dp chips as the main screen.
             val strip = LinearLayout(host).apply { orientation = LinearLayout.HORIZONTAL }
             Quality.ALL.forEach { preset ->
                 val selected = preset.key == prefs.shareQualityKey

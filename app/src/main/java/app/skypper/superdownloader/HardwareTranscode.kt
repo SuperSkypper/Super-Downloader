@@ -9,25 +9,25 @@ import java.io.File
 import java.nio.ByteBuffer
 
 /**
- * Compressao usando o encoder de hardware do aparelho (MediaCodec).
+ * Compression using the device's hardware encoder (MediaCodec).
  *
- * O x264 em software roda a ~0.9x neste celular: um video de 7min40 levava mais de
- * oito minutos e parecia travado. O ffmpeg-kit deste projeto NAO traz
- * `h264_mediacodec` como encoder (so decoders), entao a GPU nao era alcancavel pelo
- * ffmpeg — o caminho e falar MediaCodec direto, com o decoder escrevendo na
- * superficie do encoder.
+ * Software x264 runs at ~0.9x on this phone: a 7min40 video took over
+ * eight minutes and looked frozen. This project's ffmpeg-kit does NOT ship
+ * `h264_mediacodec` as an encoder (only decoders), so the GPU was not reachable through
+ * ffmpeg — the path is to talk MediaCodec directly, with the decoder writing to the
+ * encoder's surface.
  *
- * Aqui so o VIDEO e transcodificado. O audio sai com `-c copy` no ffmpeg depois,
- * o que leva menos de um segundo: misturar as duas trilhas no mesmo MediaMuxer
- * exigiria intercalar os samples na mao, com risco de muxer corrompido.
+ * Only the VIDEO is transcoded here. The audio is copied with `-c copy` in ffmpeg afterwards,
+ * which takes less than a second: mixing both tracks in the same MediaMuxer
+ * would require interleaving the samples by hand, with a risk of a corrupted muxer.
  */
 object HardwareTranscode {
 
     class Failure(message: String) : Exception(message)
 
     /**
-     * @return tamanho do arquivo gerado (sem audio).
-     * @throws Failure quando o aparelho nao tem encoder H.264 compativel.
+     * @return size of the generated file (no audio).
+     * @throws Failure when the device has no compatible H.264 encoder.
      */
     fun videoOnly(
         source: File,
@@ -64,7 +64,7 @@ object HardwareTranscode {
             val height = format.getInteger(MediaFormat.KEY_HEIGHT)
             val durationUs = format.getLong(MediaFormat.KEY_DURATION).coerceAtLeast(1L)
 
-            // Dimensoes PARES: o encoder H.264 recusa ímpar (1080x1921, por ex.).
+            // EVEN dimensions: the H.264 encoder rejects odd ones (1080x1921, e.g.).
             val outWidth = width and 1.inv()
             val outHeight = height and 1.inv()
 
@@ -76,13 +76,13 @@ object HardwareTranscode {
                     MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface
                 )
                 setInteger(MediaFormat.KEY_BIT_RATE, videoKbps * 1000)
-                // O encoder deste aparelho sozinho entrega ~1 Mbps mesmo pedindo
-                // 800k; `KEY_MAX_BIT_RATE` e o que os encoders de hardware da
-                // Samsung respeitam de fato.
+                // This device's encoder alone delivers ~1 Mbps even when asking
+                // for 800k; `KEY_MAX_BIT_RATE` is what Samsung hardware encoders
+                // actually respect.
                 setInteger("max-bitrate", videoKbps * 1000)
                 setInteger(MediaFormat.KEY_FRAME_RATE, 30)
                 setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
-                // CBR: o alvo de tamanho precisa de previsibilidade.
+                // CBR: the size target needs predictability.
                 setInteger(
                     MediaFormat.KEY_BITRATE_MODE,
                     MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR
@@ -137,7 +137,7 @@ object HardwareTranscode {
         var lastReport = 0f
 
         while (!outputDone) {
-            // --- alimenta o decoder com os samples do arquivo ---
+            // --- feed the decoder with the file's samples ---
             if (!inputDone) {
                 val index = decoder.dequeueInputBuffer(10_000)
                 if (index >= 0) {
@@ -155,11 +155,11 @@ object HardwareTranscode {
                 }
             }
 
-            // --- decoder -> superficie do encoder ---
+            // --- decoder -> encoder surface ---
             var decIndex = decoder.dequeueOutputBuffer(info, 0)
             while (decIndex >= 0) {
-                // `render = true` entrega o frame na superficie; sem isso o encoder
-                // nunca recebe imagem.
+                // `render = true` delivers the frame to the surface; without it the encoder
+                // never receives an image.
                 decoder.releaseOutputBuffer(decIndex, true)
                 if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
                     encoder.signalEndOfInputStream()
@@ -167,7 +167,7 @@ object HardwareTranscode {
                 decIndex = decoder.dequeueOutputBuffer(info, 0)
             }
 
-            // --- drena o encoder para o muxer ---
+            // --- drain the encoder into the muxer ---
             var encIndex = encoder.dequeueOutputBuffer(info, 10_000)
             while (encIndex >= 0 || encIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 if (encIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -179,7 +179,7 @@ object HardwareTranscode {
                 } else {
                     val outBuffer = encoder.getOutputBuffer(encIndex)
                     if (outBuffer != null && info.size > 0 && muxStarted) {
-                        // Config (SPS/PPS) ja vai no track format: nao escrever.
+                        // Config (SPS/PPS) already goes in the track format: do not write it.
                         if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG == 0) {
                             outBuffer.position(info.offset)
                             outBuffer.limit(info.offset + info.size)

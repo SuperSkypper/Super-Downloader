@@ -9,22 +9,22 @@ import android.view.View
 import androidx.core.content.ContextCompat
 
 /**
- * A barra de progresso do bloco de status, desenhada a mao.
+ * The progress bar of the status block, hand-drawn.
  *
- * O `ProgressBar` do Android nao serviu: ele respeita `maxHeight` e o tamanho
- * intrinseco do drawable, entao o preenchimento nao cobria a altura nem a
- * largura do bloco (o usuario via "a barra nao pega a barra inteira"). Desenhar
- * dois retangulos arredondados aqui elimina a duvida: trilho do tamanho da View,
- * preenchimento proporcional ao progresso, mesmo raio do cartao.
+ * Android's `ProgressBar` did not work: it honors `maxHeight` and the drawable's
+ * intrinsic size, so the fill covered neither the height nor the
+ * width of the block (the user saw "the bar doesn't fill the whole bar"). Drawing
+ * two rounded rectangles here removes the doubt: a track the size of the View,
+ * a fill proportional to progress, the same radius as the card.
  */
 class ProgressStrip(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
 
     private val density = resources.displayMetrics.density
     private val radius = 12f * density
 
-    // Trilho no tom da borda e preenchimento no accent com alfa: sem isso a
-    // barra em 0% ficava invisivel (surface_variant era quase igual ao cartao) e
-    // o bloco parecia um retangulo vazio e sem funcao.
+    // Track in the border tone and fill in the accent with alpha: without this the
+    // bar at 0% was invisible (surface_variant was nearly the same as the card) and
+    // the block looked like an empty rectangle with no purpose.
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.border)
     }

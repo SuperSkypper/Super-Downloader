@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "app.skypper.superdownloader"
-        // API 29: MediaStore.Downloads + IS_PENDING sem pedir permissao de storage.
+        // API 29: MediaStore.Downloads + IS_PENDING without asking for storage permission.
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -38,8 +38,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     // OpenDocumentTree (SAF) via registerForActivityResult
     implementation("androidx.activity:activity-ktx:1.9.3")
-    // x264 para re-encodar o preset WhatsApp quando o arquivo passa de 62 MB.
-    // O ffmpeg-kit original foi retirado do Maven Central; este e o fork mantido
-    // (SDK 35, paginas de 16 KB). min-gpl = FFmpeg minimo + x264.
+    // x264 to re-encode the WhatsApp preset when the file goes over 62 MB.
+    // The original ffmpeg-kit was pulled from Maven Central; this is the maintained fork
+    // (SDK 35, 16 KB pages). min-gpl = minimal FFmpeg + x264.
     implementation("dev.ffmpegkit-maintained:ffmpeg-kit-min-gpl:8.1.9")
 }

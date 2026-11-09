@@ -8,12 +8,12 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Primeiro frame do video, recortado em quadrado, para o History mostrar de qual
- * video se trata.
+ * First frame of the video, cropped to a square, so History can show which
+ * video it is.
  *
- * O frame vai para `filesDir/thumbs` como JPEG de 128px: guardar o Bitmap em
- * memoria morreria junto com o processo, e reler o video a cada render custaria
- * caro. O nome e o hash da URI, entao a mesma linha reaproveita a imagem.
+ * The frame goes to `filesDir/thumbs` as a 128px JPEG: keeping the Bitmap in
+ * memory would die with the process, and re-reading the video on every render would be
+ * expensive. The name is the hash of the URI, so the same row reuses the image.
  */
 object Thumbs {
 
@@ -48,7 +48,7 @@ object Thumbs {
             if (square !== frame) square.recycle()
             file.absolutePath
         } catch (t: Throwable) {
-            // Video sem frame decodificavel: o History fica sem miniatura, nao sem linha.
+            // Video with no decodable frame: History ends up without a thumbnail, not without a row.
             ""
         } finally {
             runCatching { retriever.release() }

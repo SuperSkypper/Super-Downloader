@@ -8,25 +8,25 @@ import com.arthenica.ffmpegkit.ReturnCode
 import java.io.File
 
 /**
- * Re-encode do preset WhatsApp.
+ * WhatsApp preset re-encode.
  *
- * O X publica no maximo ~1,9 Mbps em 720p, e 85 s disso dao ~20 MB. O limite do
- * WhatsApp para video enviado como midia nao e 16 MB: o FAQ oficial fala em
- * 64 MB em conexao lenta e 100 MB em conexao rapida, com teto de 720p. Usar o
- * numero errado fazia o app recomprimir video que cabia tranquilamente. A regra combinada: primeiro tenta caber mantendo
- * 720p, baixando o bitrate; so cai de resolucao quando nem um bitrate de piso
- * caberia. Duas ou tres passadas no maximo, medindo o arquivo de verdade entre
- * elas (o encoder nao entrega exatamente o bitrate pedido).
+ * X publishes at most ~1.9 Mbps at 720p, and 85 s of that is ~20 MB. The limit
+ * for a video sent as media on WhatsApp is not 16 MB: the official FAQ says
+ * 64 MB on a slow connection and 100 MB on a fast one, with a 720p cap. Using the
+ * wrong number made the app recompress video that fit easily. The agreed rule: first try to fit while keeping
+ * 720p, lowering the bitrate; drop resolution only when not even a floor bitrate
+ * would fit. Two or three passes at most, measuring the real file between
+ * them (the encoder does not deliver exactly the requested bitrate).
  */
 object Transcode {
 
-    // 62 MB: os 64 MB do WhatsApp em conexao lenta, com margem para o
-    // container e para o arredondamento do encoder.
+    // 62 MB: WhatsApp's 64 MB on a slow connection, with margin for the
+    // container and for encoder rounding.
     const val WHATSAPP_LIMIT = 62_000_000L
 
     private const val MIN_KBPS = 250
-    // 96k: 128k empurrava o arquivo para 64,15 MB, logo acima do teto real
-    // do WhatsApp (64 MB) e forcava uma segunda passada inteira.
+    // 96k: 128k pushed the file to 64.15 MB, just above WhatsApp's real
+    // ceiling (64 MB), and forced a whole second pass.
     private const val AUDIO_KBPS = 96
 
     data class Result(val file: File, val width: Int, val height: Int, val bytes: Long)
@@ -34,9 +34,9 @@ object Transcode {
     fun shouldCompress(bytes: Long): Boolean = bytes > WHATSAPP_LIMIT
 
     /**
-     * @param source arquivo baixado
-     * @param durationSeconds duracao real do video
-     * @param sourceShort short side da origem (para nao upscalear)
+     * @param source downloaded file
+     * @param durationSeconds real video duration
+     * @param sourceShort short side of the source (to avoid upscaling)
      */
     fun fitForWhatsApp(
         context: Context,
@@ -46,19 +46,19 @@ object Transcode {
     ): Result {
         val dir = File(context.cacheDir, "wa")
         dir.mkdirs()
-        // Restos de tentativas anteriores ocupavam centenas de MB no cache.
+        // Leftovers from previous attempts took hundreds of MB in the cache.
         dir.listFiles()?.forEach { runCatching { it.delete() } }
         val duration = if (durationSeconds > 0) durationSeconds else 1
 
-        // Orcamento total do arquivo: sobra o audio e o resto e video.
+        // Total file budget: audio comes off first, the rest is video.
         fun budgetKbps(): Int =
             (WHATSAPP_LIMIT * 8L / duration / 1000L).toInt() - AUDIO_KBPS
 
-        // Se o orcamento ja nasce abaixo do piso, tenta UMA vez no piso: o
-        // arquivo sai bem menor que o original, que e o melhor possivel para um
-        // video longo demais, em vez de recusar e deixar os 300 MB intactos.
-        // Teto no bitrate do PROPRIO original: pedir mais que isso infla o
-        // arquivo (um video de 1.7 Mbps virou 59 MB ao pedir 5707k).
+        // If the budget is already below the floor, try ONCE at the floor: the
+        // file comes out far smaller than the original, which is the best possible for a
+        // video that is too long, instead of refusing and leaving the 300 MB intact.
+        // Ceiling on the bitrate of the ORIGINAL itself: asking for more than that inflates
+        // the file (a 1.7 Mbps video became 59 MB when asking for 5707k).
         val sourceKbps = (source.length() * 8L / duration / 1000L).toInt()
         var videoKbps = budgetKbps().coerceAtLeast(MIN_KBPS)
         if (sourceKbps > 0) videoKbps = videoKbps.coerceAtMost(sourceKbps)
@@ -66,26 +66,26 @@ object Transcode {
         var best: Result? = null
         var hardware = true
 
-        // A RESOLUCAO NAO MUDA: o video mantem o tamanho original e so o bitrate
-        // cai. Reduzir para 480p/360p estragava a imagem sem garantia de caber,
-        // porque o tamanho do arquivo depende do bitrate, nao do numero de pixels.
-        // Cada tentativa mede o resultado real e corrige o alvo proporcionalmente,
-        // ja que o x264 nao entrega o bitrate pedido com precisao.
+        // RESOLUTION DOES NOT CHANGE: the video keeps its original size and only the bitrate
+        // drops. Reducing to 480p/360p ruined the image with no guarantee of fitting,
+        // because file size depends on the bitrate, not on the pixel count.
+        // Each attempt measures the real result and corrects the target proportionally,
+        // since x264 does not deliver the requested bitrate precisely.
         for (attempt in 0 until 3) {
             if (videoKbps < MIN_KBPS) break
 
             val target = File(dir, "fit_$attempt.mp4")
             if (target.exists()) target.delete()
 
-            // Hardware primeiro (MediaCodec), software como rede de seguranca.
+            // Hardware first (MediaCodec), software as a safety net.
             var ok = false
             if (hardware) {
                 ok = runCatching {
                     val silent = File(dir, "hw_$attempt.mp4")
-                    // O MediaCodec em CBR entrega ~18% MAIS bitrate do que se pede
-                    // (948k pedidos viraram 1122k reais): sem compensar, a primeira
-                    // passada estourava o limite e o app recomecava o encode
-                    // inteiro — o "Compressing em loop" que o usuario via.
+                    // MediaCodec in CBR delivers ~18% MORE bitrate than requested
+                    // (948k requested became 1122k actual): without compensating, the first
+                    // pass blew past the limit and the app restarted the whole
+                    // encode — the "Compressing in loop" the user saw.
                     HardwareTranscode.videoOnly(source, silent, videoKbps * 84 / 100) {
                         onProgress(it * 0.92f)
                     }
@@ -94,7 +94,7 @@ object Transcode {
                     if (!remuxed) throw IllegalStateException("remux failed")
                 }.isSuccess
                 if (!ok) {
-                    // Aparelho sem encoder H.264 compativel: o resto vai em x264.
+                    // Device with no compatible H.264 encoder: the rest goes through x264.
                     hardware = false
                     runCatching { target.delete() }
                 }
@@ -104,8 +104,8 @@ object Transcode {
                 val command = buildString {
                     append("-y -i ")
                     append(quote(source.absolutePath))
-                    // `ultrafast` no software: ~2-3x mais rapido que `veryfast`,
-                    // que ja era necessario (no preset padrao, 0.2x).
+                    // `ultrafast` in software: ~2-3x faster than `veryfast`,
+                    // which was already necessary (default preset runs at 0.2x).
                     append(" -c:v libx264 -preset ultrafast -profile:v high -level 4.0")
                     append(" -b:v ${videoKbps}k -maxrate ${videoKbps * 11 / 10}k -bufsize ${videoKbps}k")
                     append(" -pix_fmt yuv420p")
@@ -122,18 +122,18 @@ object Transcode {
 
             val size = target.length()
 
-            // UMA passada e o resultado. O encoder de hardware deste aparelho
-            // entrega ~1 Mbps mesmo quando se pede 800k, entao uma segunda passada
-            // nao aproxima do alvo — ela so refaz minutos de encode e aparecia
-            // como "Compressing" em loop. Aceita qualquer resultado menor que o
-            // original; o tamanho final vai na tela.
+            // ONE pass is the result. This device's hardware encoder
+            // delivers ~1 Mbps even when 800k is requested, so a second pass
+            // does not get closer to the target — it just redoes minutes of encoding and showed up
+            // as "Compressing" in a loop. Accept any result smaller than the
+            // original; the final size goes on screen.
             if (size in 1 until source.length()) {
                 best?.file?.let { runCatching { it.delete() } }
                 return Result(target, 0, 0, size)
             }
 
-            // So continua quando o encoder devolveu algo inutil (maior que a
-            // origem): aí vale tentar de novo com outro bitrate.
+            // Only continue when the encoder returned something useless (larger than the
+            // source): then it is worth trying again with another bitrate.
             if (best == null || size < best!!.bytes) {
                 best?.file?.let { runCatching { it.delete() } }
                 best = Result(target, 0, 0, size)
@@ -143,18 +143,18 @@ object Transcode {
             videoKbps = videoKbps * 8 / 10
         }
 
-        // Nenhuma tentativa coube: devolve a menor. Menor que o original ainda
-        // e melhor que o original, e a tela avisa o tamanho final.
+        // No attempt fit: return the smallest one. Smaller than the original is still
+        // better than the original, and the screen reports the final size.
         best?.let { return it }
         throw IllegalStateException("could not compress the video to fit WhatsApp")
     }
 
     /**
-     * Extrai so a faixa de audio do video baixado, em M4A (AAC).
+     * Extracts only the audio track of the downloaded video, as M4A (AAC).
      *
-     * Baixar o MP4 inteiro e descartar o video e mais simples e mais confiavel
-     * que montar o audio por HLS: o X publica a faixa de audio separada, mas
-     * juntar os fragmentos no aparelho ja falhou em posts com duracao estranha.
+     * Downloading the whole MP4 and discarding the video is simpler and more reliable
+     * than assembling the audio from HLS: X publishes the audio track separately, but
+     * joining the fragments on the device has already failed on posts with odd durations.
      */
     fun extractAudio(context: Context, source: File, onProgress: (Float) -> Unit): Result {
         val durationMs = runCatching {
@@ -179,7 +179,7 @@ object Transcode {
         }
         val code = exec(command, durationMs) { onProgress(it) }
         if (!ReturnCode.isSuccess(code)) {
-            // A faixa pode estar num codec que nao copia para m4a; reencoda.
+            // The track may use a codec that cannot be copied into m4a; re-encode it.
             val fallback = buildString {
                 append("-y -i ")
                 append(quote(source.absolutePath))
@@ -199,9 +199,9 @@ object Transcode {
     }
 
     /**
-     * Junta o video transcodificado no hardware com o audio ORIGINAL do arquivo,
-     * sem reencodar (`-c copy`): leva menos de um segundo e preserva o audio.
-     * O `?` em `1:a:0?` faz o map ser opcional, para videos sem trilha de audio.
+     * Joins the hardware-transcoded video with the ORIGINAL audio of the file,
+     * without re-encoding (`-c copy`): takes less than a second and preserves the audio.
+     * The `?` in `1:a:0?` makes the map optional, for videos with no audio track.
      */
     private fun remuxWithAudio(video: File, source: File, target: File): Boolean {
         val command = "-y -i ${quote(video.absolutePath)} -i ${quote(source.absolutePath)}" +
@@ -211,12 +211,12 @@ object Transcode {
     }
 
     /**
-     * Roda o ffmpeg reportando progresso pela posicao do timestamp processado.
+     * Runs ffmpeg reporting progress from the position of the processed timestamp.
      *
-     * `FFmpegKit.execute` e sincrono e nao chama callback nenhum, entao a barra
-     * ficava parada durante toda a compressao — o usuario nao tinha como saber
-     * que o app estava trabalhando. `executeAsync` com StatisticsCallback
-     * entrega `time` em ms, que dividido pela duracao da o percentual.
+     * `FFmpegKit.execute` is synchronous and calls no callback at all, so the bar
+     * sat still for the whole compression — the user had no way to know
+     * the app was working. `executeAsync` with StatisticsCallback
+     * delivers `time` in ms, which divided by the duration gives the percentage.
      */
     private fun exec(
         command: String,

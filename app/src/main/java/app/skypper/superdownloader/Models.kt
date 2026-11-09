@@ -2,7 +2,7 @@ package app.skypper.superdownloader
 
 import java.util.Locale
 
-/** Onde o arquivo vai cair, escolhido pelo usuario. Vazio = default do app. */
+/** Where the file will land, chosen by the user. Empty = app default. */
 data class Dest(val tree: String, val label: String) {
     val isSet: Boolean get() = tree.isNotBlank()
     companion object {
@@ -11,13 +11,13 @@ data class Dest(val tree: String, val label: String) {
 }
 
 /**
- * O que o usuario escolhe no seletor de qualidade.
+ * What the user picks in the quality selector.
  *
- * Tres presets e o Custom:
- *  - HIGHEST: a maior resolucao que o post tiver, sem recomprimir;
- *  - WHATSAPP: ate 720p e, se passar de 62 MB, recomprime para caber no envio;
- *  - CUSTOM: uma altura especifica (4K, 1440p, 1080p ...), limitada ao que o
- *    post oferece — nunca "4K" num video de 360p.
+ * Three presets plus Custom:
+ *  - HIGHEST: the highest resolution the post has, without re-encoding;
+ *  - WHATSAPP: up to 720p and, if over 62 MB, re-encodes to fit the send limit;
+ *  - CUSTOM: a specific height (4K, 1440p, 1080p ...), bounded by what the
+ *    post offers — never "4K" on a 360p video.
  */
 enum class QualityPreset(val key: String, val label: String) {
     WHATSAPP("whatsapp", "WhatsApp"),
@@ -33,10 +33,10 @@ enum class QualityPreset(val key: String, val label: String) {
     }
 }
 
-/** Uma altura da escada do Custom, ja com o rotulo que o usuario le. */
+/** One height on the Custom ladder, already carrying the label the user sees. */
 data class Quality(val key: String, val label: String) {
 
-    /** "Audio Only": baixa so a faixa de audio, extraida do MP4 do post. */
+    /** "Audio Only": downloads just the audio track, extracted from the post's MP4. */
     val isAudioOnly: Boolean get() = key == QualityPreset.AUDIO.key
 
     val isWhatsApp: Boolean get() = key == QualityPreset.WHATSAPP.key
@@ -50,7 +50,7 @@ data class Quality(val key: String, val label: String) {
             else -> QualityPreset.WHATSAPP
         }
 
-    /** Altura alvo; null = a maior disponivel. */
+    /** Target height; null = the largest available. */
     val height: Int?
         get() = when {
             isWhatsApp -> 720
@@ -64,7 +64,7 @@ data class Quality(val key: String, val label: String) {
         const val KEY_HIGHEST = "highest"
         const val KEY_CUSTOM = "custom"
 
-        /** A escada que o Custom oferece, da melhor para a pior. */
+        /** The ladder Custom offers, best to worst. */
         val LADDER = listOf(
             Quality("2160", "4K"),
             Quality("1440", "1440p"),
@@ -93,32 +93,32 @@ data class Quality(val key: String, val label: String) {
                 ?: Quality(KEY_WHATSAPP, "WhatsApp")
 
         /**
-         * Quais alturas da escada o post realmente oferece.
+         * Which heights on the ladder the post actually offers.
          *
-         * "Nao adianta ter 4K se o video e 360p": a escada e cortada no topo que
-         * o proprio post publica. Sem informacao (post ainda nao lido), tudo
-         * aparece habilitado.
+         * "No point having 4K if the video is 360p": the ladder is cut at the top
+         * the post itself publishes. With no information (post not read yet),
+         * everything shows as enabled.
          */
         fun ladderFor(maxAvailable: Int?): List<Quality> {
             if (maxAvailable == null || maxAvailable <= 0) return LADDER
             val shown = LADDER.filter { it.height!! <= maxAvailable }
-            // O post sempre tem alguma coisa; se nenhum degrau couber, mostra o menor.
+            // The post always has something; if no rung fits, show the smallest.
             return shown.ifEmpty { listOf(LADDER.last()) }
         }
     }
 }
 
-/** Uma variante de encoding que a API do vxtwitter publica para o video. */
+/** One encoding variant that the vxtwitter API publishes for the video. */
 data class Variant(val url: String, val height: Int, val kbps: Int)
 
-/** Um video do post, com as variantes que o X oferece (pode ser so o MP4 final). */
+/** A video from the post, with the variants X offers (may be just the final MP4). */
 data class MediaItem(
     val variants: List<Variant>,
     val screenName: String,
     val mediaId: String,
     val durationMs: Long
 ) {
-    /** Nome do arquivo: o media id, nunca o id do tweet. */
+    /** File name: the media id, never the tweet id. */
     fun baseName(): String {
         val who = screenName.lowercase().replace(Regex("[^a-z0-9._-]"), "").ifBlank { "video" }
         return if (mediaId.isNotBlank()) "${who}_${mediaId}" else who

@@ -14,16 +14,16 @@ import java.net.URL
 class CancelledException : Exception("cancelado")
 
 /**
- * Baixa o video e devolve o content URI que o share sheet consegue ler.
+ * Downloads the video and returns the content URI that the share sheet can read.
  *
- * Dois destinos possiveis:
- *  - a pasta escolhida pelo usuario (SAF tree) -> grava la, que pode ser o
- *    proprio Download/Agent do WhatsApp, o cartao SD ou o Google Drive;
- *  - nada escolhido -> MediaStore.Downloads em Download/Agent, sem permissao.
+ * Two possible destinations:
+ *  - the folder chosen by the user (SAF tree) -> writes there, which may be
+ *    WhatsApp's own Download/Agent folder, the SD card or Google Drive;
+ *  - nothing chosen -> MediaStore.Downloads in Download/Agent, with no permission.
  *
- * No preset do WhatsApp o arquivo baixado e a maior variante ate 720 e o app
- * garante o resto do formato (H.264 + AAC, faststart): se o MP4 do X ja vier
- * assim, nada e reencodado no aparelho.
+ * In the WhatsApp preset the downloaded file is the largest variant up to 720 and the app
+ * guarantees the rest of the format (H.264 + AAC, faststart): if the MP4 from X already comes
+ * that way, nothing is re-encoded on the device.
  */
 object Downloader {
 
@@ -32,13 +32,13 @@ object Downloader {
     const val MIME = "video/mp4"
     const val MIME_AUDIO = "audio/mp4"
 
-    /** Duracao real e lado curto do video, lidos do proprio arquivo. */
+    /** Real duration and short side of the video, read from the file itself. */
     data class Probe(val durationMs: Long, val shortSide: Int)
 
     /**
-     * Mede o arquivo em vez de confiar no modelo do post: `variant.height` e
-     * `variant.durationMs` vinham trocados/vazios e o bitrate da compressao era
-     * calculado em cima de uma duracao de 1 segundo (pediu 63 Mbps).
+     * Measures the file instead of trusting the post model: `variant.height` and
+     * `variant.durationMs` came swapped/empty and the compression bitrate was
+     * computed on top of a 1-second duration (it asked for 63 Mbps).
      */
     fun probe(context: Context, uri: Uri): Probe? = runCatching {
         val retriever = android.media.MediaMetadataRetriever()
@@ -81,8 +81,8 @@ object Downloader {
     }
 
     /**
-     * Escolhe a variante pela altura pedida. "Melhor disponivel" (height null)
-     * pega a maior do post.
+     * Picks the variant by the requested height. "Best available" (height null)
+     * takes the largest one in the post.
      */
     fun pick(item: MediaItem, quality: Quality): Variant? {
         val target = if (quality.isWhatsApp) quality.height else quality.height
@@ -153,8 +153,8 @@ object Downloader {
     }
 
     /**
-     * No SAF a escrita e direta. No MediaStore o arquivo nasce pendente e so
-     * aparece na galeria depois do download completo.
+     * With SAF the write is direct. With MediaStore the file is created pending and only
+     * shows up in the gallery after the download completes.
      */
     private fun createTarget(
         resolver: ContentResolver,
@@ -231,7 +231,7 @@ object Downloader {
         }
     }
 
-    /** Copia o conteudo do content URI para o cache, que e onde o FFmpeg le. */
+    /** Copies the content URI contents to the cache, which is where FFmpeg reads from. */
     fun localCopy(context: Context, uri: Uri): java.io.File {
         val dir = java.io.File(context.cacheDir, "src")
         dir.mkdirs()
@@ -244,10 +244,10 @@ object Downloader {
     }
 
     /**
-     * Troca o arquivo pesado pelo comprimido, mantendo o nome visivel.
+     * Replaces the heavy file with the compressed one, keeping the visible name.
      *
-     * No MediaStore a entrada antiga e apagada e a nova inserida em
-     * Download/Agent; no SAF o comprimido sobrescreve o documento escolhido.
+     * In MediaStore the old entry is deleted and the new one inserted in
+     * Download/Agent; with SAF the compressed file overwrites the chosen document.
      */
     fun replaceWith(
         context: Context,

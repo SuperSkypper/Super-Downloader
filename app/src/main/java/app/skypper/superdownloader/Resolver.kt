@@ -7,14 +7,14 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Link compartilhado -> lista de videos com as variantes de resolucao.
+ * Shared link -> list of videos with the resolution variants.
  *
- * O X nao publica MP4 de todas as resolucoes: a API de metadados devolve UM url,
- * normalmente 720x1280. As outras alturas vivem num master.m3u8 que fica ao lado
- * (`<base>/pl/avc1/master.m3u8`), cujas variantes apontam para `/pl/avc1/<W>x<H>/`.
- * Eh esse o caminho para descobrir o que existe e baixar a altura pedida; o MP4
- * direto da API e o ultimo recurso. O master fica cacheado por post para o
- * usuario trocar de resolucao sem refazer a consulta inteira.
+ * X does not publish an MP4 for every resolution: the metadata API returns ONE url,
+ * usually 720x1280. The other heights live in a master.m3u8 that sits next to it
+ * (`<base>/pl/avc1/master.m3u8`), whose variants point to `/pl/avc1/<W>x<H>/`.
+ * That is the way to discover what exists and download the requested height; the MP4
+ * straight from the API is the last resort. The master is cached per post so the
+ * user can switch resolution without repeating the whole query.
  */
 object Resolver {
 
@@ -62,7 +62,7 @@ object Resolver {
         throw ResolveException("This app handles X (Twitter) links and direct .mp4 files for now.")
     }
 
-    // --------------------------------------------------------------- fontes
+    // --------------------------------------------------------------- sources
 
     private fun fromVx(tweetId: String): List<MediaItem> {
         val root = JSONObject(httpGet("https://api.vxtwitter.com/i/status/$tweetId"))
@@ -109,14 +109,14 @@ object Resolver {
         return out
     }
 
-    /** O MP4 direto sempre entra na lista, como ultimo recurso. */
+    /** The direct MP4 always goes into the list, as a last resort. */
     private fun withLadder(direct: String): List<Variant> {
         val ladder = ladderFor(direct)
         if (ladder.any { it.url == direct }) return ladder
         return ladder + Variant(direct, 0, 0)
     }
 
-    // -------------------------------------------------------------- escada
+    // --------------------------------------------------------------- ladder
 
     private fun ladderFor(directUrl: String): List<Variant> {
         val base = masterBase(directUrl) ?: return emptyList()
@@ -160,7 +160,7 @@ object Resolver {
         return out
     }
 
-    // ----------------------------------------------------------------- net
+    // ------------------------------------------------------------- network
 
     private fun httpGet(url: String): String {
         val conn = (URL(url).openConnection() as HttpURLConnection).apply {

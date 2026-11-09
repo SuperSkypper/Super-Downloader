@@ -6,13 +6,13 @@ import android.graphics.drawable.GradientDrawable
 import androidx.core.content.ContextCompat
 
 /**
- * A paleta em um lugar so, igual ao Super Capture.
+ * The palette in one place, same as Super Capture.
  *
- * Os valores moram em `res/values/colors.xml`; esta classe resolve uma vez por
- * activity e adiciona o que os layouts montados em codigo precisam (tinta alpha
- * e retangulo arredondado). Constante `Int` em companion nao ve o tema nem pode
- * ser sobrescrita por recurso, que era o motivo de o app antigo ter cor
- * repetida em cada tela.
+ * The values live in `res/values/colors.xml`; this class resolves once per
+ * activity and adds what layouts built in code need (alpha tint
+ * and rounded rectangle). An `Int` constant in a companion sees neither the theme nor can it
+ * be overridden by a resource, which was the reason the old app had the same color
+ * repeated on every screen.
  */
 class Palette(context: Context) {
 
@@ -33,10 +33,10 @@ class Palette(context: Context) {
     val onAccent: Int get() = color(R.color.on_accent)
 
     /**
-     * A mesma cor com opacidade reduzida.
+     * The same color with reduced opacity.
      *
-     * Multiplicar o RGB escureceria para preto, que numa pagina quase preta
-     * desaparece; alpha sobre a pagina e o que le como tinta.
+     * Multiplying the RGB would darken it toward black, which on a nearly black page
+     * disappears; alpha over the page is what reads as tint.
      */
     fun alpha(base: Int, fraction: Float): Int = Color.argb(
         (255 * fraction).toInt().coerceIn(0, 255),
@@ -45,7 +45,7 @@ class Palette(context: Context) {
         Color.blue(base),
     )
 
-    /** Retangulo arredondado em [fill], com contorno opcional em [stroke]. */
+    /** Rounded rectangle in [fill], with an optional outline in [stroke]. */
     fun roundRect(
         fill: Int,
         radiusPx: Float,

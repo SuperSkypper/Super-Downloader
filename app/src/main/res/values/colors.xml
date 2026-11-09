@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Paleta unica do app: um lugar para mudar o tema.
+  Single palette for the app: one place to change the theme.
 
-  Escuro por decisao. `Theme.SuperDownloader` deriva de Material3.Dark, entao o
-  DayNight nunca entra em modo claro. O visual segue o Super Capture, a
-  referencia de UI dos apps deste usuario.
+  Dark by decision. `Theme.SuperDownloader` derives from Material3.Dark, so
+  DayNight never enters light mode. The look follows Super Capture, the
+  UI reference for this user's apps.
 -->
 <resources>
-    <!-- Fundo da janela e das paginas -->
+    <!-- Window and page background -->
     <color name="bg">#0B0D10</color>
     <color name="surface">#14181F</color>
     <color name="surface_variant">#1C222B</color>
     <color name="border">#2A323D</color>
 
-    <!-- Texto -->
+    <!-- Text -->
     <color name="text">#E6EDF3</color>
     <color name="text_muted">#8B98A8</color>
 
-    <!-- Accent e estados -->
+    <!-- Accent and states -->
     <color name="accent">#58A6FF</color>
     <color name="accent_dim">#1F3A5F</color>
     <color name="danger">#F85149</color>
 
-    <!-- Acoes neutras -->
+    <!-- Neutral actions -->
     <color name="on_accent">#08121F</color>
 </resources>

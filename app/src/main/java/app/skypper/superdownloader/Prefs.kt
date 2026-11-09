@@ -3,7 +3,7 @@ package app.skypper.superdownloader
 import android.content.Context
 import android.content.SharedPreferences
 
-/** Uma linha do History: o link compartilhado e o arquivo que saiu dele. */
+/** One History row: the shared link and the file that came out of it. */
 data class HistoryEntry(
     val link: String,
     val uri: String,
@@ -11,11 +11,11 @@ data class HistoryEntry(
 )
 
 /**
- * Preferencias: destino, qualidade e o backup da escolha de pasta.
+ * Preferences: destination, quality and the backup of the folder choice.
  *
- * O backup existe porque um SAF grant pode ser revogado (app desinstalado,
- * cartao removido, usuario limpando dados da fonte). Se o grant morrer, o app
- * pede a pasta de novo em vez de baixar em silencio para o lugar errado.
+ * The backup exists because a SAF grant can be revoked (app uninstalled,
+ * card removed, user clearing data of the source). If the grant dies, the app
+ * asks for the folder again instead of silently downloading to the wrong place.
  */
 class Prefs(context: Context) {
 
@@ -23,21 +23,21 @@ class Prefs(context: Context) {
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
     /**
-     * Preset selecionado: whatsapp, highest ou custom. E o valor que o modo
-     * automatico usa quando ele esta ligado.
+     * Selected preset: whatsapp, highest or custom. It is the value automatic
+     * mode uses when it is on.
      */
     var qualityKey: String
         get() = sp.getString(KEY_QUALITY, Quality.DEFAULT_KEY) ?: Quality.DEFAULT_KEY
         set(value) = sp.edit().putString(KEY_QUALITY, value).apply()
 
-    /** Altura escolhida dentro do Custom (ex.: "1080"). */
+    /** Height chosen inside Custom (e.g. "1080"). */
     var customHeightKey: String
         get() = sp.getString(KEY_CUSTOM_HEIGHT, "1080") ?: "1080"
         set(value) = sp.edit().putString(KEY_CUSTOM_HEIGHT, value).apply()
 
     /**
-     * Quando ligado, o app baixa sem perguntar, usando o preset salvo. Desligado,
-     * a tela mostra o seletor para escolher a qualidade antes de baixar.
+     * When on, the app downloads without asking, using the saved preset. When off,
+     * the screen shows the selector to pick the quality before downloading.
      */
     var autoQuality: Boolean
         get() = sp.getBoolean(KEY_AUTO_QUALITY, true)
@@ -49,7 +49,7 @@ class Prefs(context: Context) {
             qualityKey = value.key
         }
 
-    /** O que usar num download: o preset, ou no Custom a altura escolhida. */
+    /** What to use on a download: the preset, or on Custom the chosen height. */
     fun effectiveQuality(): Quality {
         val preset = quality
         return if (preset.preset == QualityPreset.CUSTOM) {
@@ -58,23 +58,23 @@ class Prefs(context: Context) {
     }
 
     /**
-     * Qualidade usada nos downloads que chegam por SHARE.
+     * Quality used for downloads that arrive via SHARE.
      *
-     * A pessoa costuma compartilhar video de um jeito e colar link de outro, entao
-     * o preset escolhido em QUALITY vale para o link colado na tela, e este aqui
-     * so vale quando o app e aberto pela folha de compartilhamento do sistema.
-     * Vazio = usa o preset normal.
+     * People usually share a video one way and paste a link another, so
+     * the preset chosen in QUALITY applies to the link pasted on screen, and this one
+     * applies only when the app is opened from the system share sheet.
+     * Empty = uses the normal preset.
      */
     var shareQualityKey: String
         get() = sp.getString(KEY_SHARE_QUALITY, "").orEmpty()
         set(value) = sp.edit().putString(KEY_SHARE_QUALITY, value).apply()
 
-    /** Liga/desliga uma qualidade propria para share. */
+    /** Turns a dedicated quality for share on/off. */
     var shareQualityEnabled: Boolean
         get() = sp.getBoolean(KEY_SHARE_QUALITY_ENABLED, false)
         set(value) = sp.edit().putBoolean(KEY_SHARE_QUALITY_ENABLED, value).apply()
 
-    /** Qualidade efetiva deste download, considerando a origem. */
+    /** Effective quality for this download, taking the origin into account. */
     fun qualityFor(fromShare: Boolean): Quality =
         if (fromShare && shareQualityEnabled && shareQualityKey.isNotBlank()) {
             Quality.byKey(shareQualityKey)
@@ -82,7 +82,7 @@ class Prefs(context: Context) {
             effectiveQuality()
         }
 
-    /** Ultima pasta valida escolhida pelo usuario. */
+    /** Last valid folder chosen by the user. */
     var destTree: String
         get() = sp.getString(KEY_TREE, "").orEmpty()
         set(value) = sp.edit().putString(KEY_TREE, value).apply()
@@ -96,14 +96,14 @@ class Prefs(context: Context) {
     }
 
     /**
-     * Os ultimos downloads (ate 10): o link E o arquivo.
+     * The latest downloads (up to 10): the link AND the file.
      *
-     * O link serve para baixar de novo; o arquivo e o que o botao de
-     * compartilhar entrega. Guardar so o link obrigaria a resolver e baixar
-     * outra vez para compartilhar o que ja esta no aparelho.
+     * The link is for downloading again; the file is what the share
+     * button hands over. Storing only the link would force resolving and downloading
+     * again just to share what is already on the device.
      *
-     * Serializado como `link|uri` por linha — simples, sem JSON, e um item sem
-     * uri (download antigo) continua valido.
+     * Serialized as `link|uri` per line — simple, no JSON, and an item without
+     * a uri (old download) stays valid.
      */
     var history: List<HistoryEntry>
         get() = sp.getString(KEY_HISTORY, "").orEmpty()

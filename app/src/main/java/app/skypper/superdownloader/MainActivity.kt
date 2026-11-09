@@ -30,14 +30,14 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 /**
- * Duas abas, como o Super Capture: Download (link, qualidade, progresso) e
- * Settings (pasta, qualidade automatica).
+ * Two tabs, like Super Capture: Download (link, quality, progress) and
+ * Settings (folder, automatic quality).
  *
- * O desenho e o do Super Capture de proposito: pagina com 10dp de margem,
- * titulo de secao solto em caixa alta acima de um cartao `bg_card`, cada linha
- * num slot de 42dp, chips de 34dp (selecionado = accent cheio com texto escuro)
- * e a tab bar como overlay com hairline, indicador `accentDim` contornado e
- * icone + rotulo que acendem juntos.
+ * The layout is Super Capture's on purpose: page with a 10dp margin,
+ * section title loose in caps above a `bg_card` card, each row
+ * in a 42dp slot, 34dp chips (selected = solid accent with dark text)
+ * and the tab bar as an overlay with a hairline, `accentDim` outlined indicator and
+ * icon + label that light up together.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -46,10 +46,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var palette: Palette
     private lateinit var prefs: Prefs
 
-    // Estrutura
+    // Structure
     private lateinit var pageView: LinearLayout
 
-    // Aba Download
+    // Download tab
     private lateinit var linkField: EditText
     private lateinit var qualityRow: LinearLayout
     private lateinit var historyBlock: LinearLayout
@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var actionButton: TextView
     private lateinit var shareButton: TextView
 
-    // Aba Settings
+    // Settings tab
     private lateinit var folderValue: TextView
 
     private val ui = Handler(Looper.getMainLooper())
@@ -82,7 +82,7 @@ class MainActivity : AppCompatActivity() {
     private var lastBytes: Long = 0L
     private var fromShare: Boolean = false
 
-    /** Link ja enviado ao download. Sobrevive a recriacao da Activity. */
+    /** Link already sent to the download. Survives Activity recreation. */
     private var handledUrl: String? = null
     private var compressStart: Long = 0L
     private var lastUrl: String? = null
@@ -97,11 +97,11 @@ class MainActivity : AppCompatActivity() {
         prefsLoadState()
         showShareButton()
 
-        // O app e resizeable e nao declara configChanges: entrar em tela dividida,
-        // girar ou trocar o tamanho da janela DESTROI e recria esta Activity. Sem
-        // este marcador, o onCreate relia o link do intent e disparava o download
-        // outra vez a cada recriacao — o "rebaixando" que aparecia ao sair e
-        // voltar do foco.
+        // The app is resizeable and does not declare configChanges: entering split
+        // screen, rotating or resizing the window DESTROYS and recreates this Activity. Without
+        // this marker, onCreate re-read the link from the intent and fired the download
+        // again on every recreation — the "downloading" that showed up when leaving and
+        // returning to focus.
         handledUrl = savedInstanceState?.getString(STATE_HANDLED_URL)
         val restoring = savedInstanceState != null
 
@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         this.fromShare = intent?.action == Intent.ACTION_SEND
 
         if (restoring) {
-            // Recriacao: repinta o estado e so baixa se o link for outro.
+            // Recreation: repaint the state and only download if the link differs.
             lastUrl = handledUrl ?: incoming
             if (incoming != null && incoming != handledUrl) {
                 handle(incoming, this.fromShare)
@@ -159,10 +159,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * @param isShare true quando o link veio da folha de compartilhamento. Vem
-     * por parametro porque `onNewIntent` NAO atualiza `Activity.intent`: ler a
-     * propriedade ali devolvia a action da primeira abertura e um share
-     * posterior era tratado como link colado (ou o contrario).
+     * @param isShare true when the link came from the share sheet. It comes
+     * as a parameter because `onNewIntent` does NOT update `Activity.intent`: reading the
+     * property there returned the action from the first launch and a later
+     * share was treated as a pasted link (or the reverse).
      */
     private fun handle(url: String?, isShare: Boolean) {
         fromShare = isShare
@@ -175,12 +175,12 @@ class MainActivity : AppCompatActivity() {
         if (prefs.autoQuality) start(url) else askQuality(url)
     }
 
-    // ------------------------------------------------------------ estrutura
+    // ------------------------------------------------------------- structure
 
     /**
-     * Uma pagina so. A aba Settings saiu: a pasta de destino virou uma linha na
-     * tela principal e o que era configuracao de share mora na engrenagem da
-     * fileira de qualidade.
+     * A single page. The Settings tab is gone: the destination folder became a row on the
+     * main screen and what used to be share configuration lives in the gear of the
+     * quality row.
      */
     private fun buildUi(): FrameLayout {
         val root = FrameLayout(this).apply { setBackgroundColor(palette.background) }
@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity() {
         return root
     }
 
-    // ---------------------------------------------------------- aba Download
+    // ---------------------------------------------------------- Download tab
 
     private fun buildDownloadPage(): LinearLayout {
         val page = page()
@@ -203,12 +203,12 @@ class MainActivity : AppCompatActivity() {
         historyBlock = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         historyBlock.addView(sectionTitle("HISTORY"))
         historyCard = card()
-        // Quadrado grande e fixo: cabe as tres linhas de historico com os dois
-        // botoes, e nao muda de altura quando o primeiro item chega.
-        // Sem altura fixa: o History toma todo o espaco que sobra entre o status
-        // e os controles de baixo. Rola, e os itens crescem DE BAIXO PARA CIMA
-        // (`Gravity.BOTTOM` no cartao + ordem invertida no render): o mais novo e
-        // o mais perto do polegar, como no resto do app.
+        // Large fixed square: fits the three history rows with both
+        // buttons, and does not change height when the first item arrives.
+        // No fixed height: the History takes all the space left between the status
+        // and the bottom controls. It scrolls, and items grow BOTTOM-UP
+        // (`Gravity.BOTTOM` on the card + reversed order in render): the newest is
+        // the closest to the thumb, like the rest of the app.
         historyCard.gravity = Gravity.BOTTOM
         historyScroll = ScrollView(this).apply {
             isFillViewport = true
@@ -243,8 +243,8 @@ class MainActivity : AppCompatActivity() {
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ))
 
-        // Escada do Custom: so com Custom selecionado, e so com as alturas que
-        // o post realmente tem.
+        // Custom ladder: only with Custom selected, and only with the heights
+        // the post actually has.
         customRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         Quality.LADDER.forEach { level ->
             val chip = chip(level.label) {
@@ -264,16 +264,16 @@ class MainActivity : AppCompatActivity() {
         ).apply { topMargin = dp(6) })
 
         // LINK -------------------------------------------------------------
-        // Barra do Super Capture (`timeLogBar`): campo de 42dp com `bg_field` e
-        // um botao accent ao lado. Aqui o botao e Paste, com glifo e palavra.
+        // Super Capture's bar (`timeLogBar`): 42dp field with `bg_field` and
+        // an accent button beside it. Here the button is Paste, with glyph and word.
         val linkBlock = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         linkBlock.addView(sectionTitle("LINK"))
         val linkBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 0, dp(10), 0)
-            // Sem padding a esquerda: o campo entra na mesma linha dos outros
-            // blocos. A direita fecha na margem da pagina.
+            // No left padding: the field joins the same line as the other
+            // blocks. The right side closes on the page margin.
         }
         linkBar.addView(linkField())
         linkBar.addView(pasteButton())
@@ -282,22 +282,22 @@ class MainActivity : AppCompatActivity() {
         ))
 
         // STATUS -----------------------------------------------------------
-        // So o estado do download: titulo, barra e a linha de detalhe (bytes,
-        // aviso de compressao). A instrucao "cole um link e escolha a
-        // qualidade" saiu daqui: o proprio campo e os chips dizem isso.
-        // Barra de status GROSSA: o estado centralizado no meio dela, a barra
-        // de progresso como fundo e as estatisticas de bytes logo abaixo.
+        // Only the download state: title, bar and the detail line (bytes,
+        // compression warning). The instruction "paste a link and choose the
+        // quality" is gone from here: the field and the chips say it themselves.
+        // THICK status bar: the state centered in the middle of it, the progress
+        // bar as background and the byte stats right below.
         val statusCard = FrameLayout(this).apply {
             background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_card)
             minimumHeight = dp(STATUS_HEIGHT_DP)
         }
 
-        // Fundo: a barra de progresso ocupa o bloco inteiro (grossa).
-        // View propria, nao ProgressBar: ver ProgressStrip.kt.
+        // Background: the progress bar fills the whole block (thick).
+        // Custom View, not ProgressBar: see ProgressStrip.kt.
         progressBar = ProgressStrip(this)
-        // Altura FIXA, nao MATCH_PARENT: dentro de um FrameLayout wrap_content a
-        // View sem tamanho intrinseco recebe um spec AT_MOST e cresce ate ocupar
-        // a tela toda (a barra azul engoliu a pagina antes desta correcao).
+        // FIXED height, not MATCH_PARENT: inside a wrap_content FrameLayout the
+        // View with no intrinsic size gets an AT_MOST spec and grows to fill
+        // the whole screen (the blue bar swallowed the page before this fix).
         statusCard.addView(progressBar, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, dp(STATUS_HEIGHT_DP)
         ))
@@ -323,12 +323,12 @@ class MainActivity : AppCompatActivity() {
             gravity = Gravity.CENTER
             setLineSpacing(dp(2).toFloat(), 1f)
             setTextColor(palette.muted)
-            // Fora do bloco de status: so aparece quando ha um erro para explicar.
+            // Outside the status block: only shows when there is an error to explain.
             visibility = View.GONE
         }
-        // Detalhe dentro do bloco, embaixo do titulo: bytes baixados, quanto
-        // falta, percentual e a causa de um erro. Fica oculto quando nao ha o
-        // que dizer (estado Waiting).
+        // Detail inside the block, below the title: bytes downloaded, how much
+        // is left, percentage and the cause of an error. It stays hidden when there is
+        // nothing to say (Waiting state).
         statusColumn.addView(detailView, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { topMargin = dp(2) })
@@ -338,22 +338,22 @@ class MainActivity : AppCompatActivity() {
             Gravity.CENTER_VERTICAL
         ))
 
-        // ACAO (largura total, no polegar) --------------------------------
-        // Mesmo desenho do botao Paste: accent cheio, texto on_accent. Ele e a
-        // acao principal da tela, entao nao pode ser o contorno secundario.
+        // ACTION (full width, under the thumb) ------------------------------
+        // Same design as the Paste button: solid accent, on_accent text. It is the
+        // main action of the screen, so it cannot be the secondary outline.
         actionButton = outlinedButton("Download").apply {
             background = palette.roundRect(palette.accent, dp(12).toFloat())
             setTextColor(palette.onAccent)
             setOnClickListener { onAction() }
         }
 
-        // De baixo para cima: o link e o primeiro elemento da base, a
-        // qualidade sobe acima dele e o history fica no topo.
-        // Ordem na tela, de cima para baixo: STATUS, (respiro), HISTORY,
-        // QUALITY, LINK, ACAO. O status fica no topo a pedido; o resto desce
-        // colado no rodape porque o spacer com peso 1 come o espaco livre.
-        // A pasta e a primeira coisa da tela: sem titulo de secao e sem
-        // descricao, so o rotulo "Choose Download Folder" e o template ativo.
+        // Bottom-up: the link is the first element of the base, the
+        // quality rises above it and the history stays at the top.
+        // Screen order, top to bottom: STATUS, (breath), HISTORY,
+        // QUALITY, LINK, ACTION. The status stays at the top by request; the rest goes down
+        // glued to the footer because the spacer with weight 1 eats the free space.
+        // The folder is the first thing on the screen: no section title and no
+        // description, just the "Choose Download Folder" label and the active template.
         val destBar = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -399,9 +399,9 @@ class MainActivity : AppCompatActivity() {
         page.addView(statusCard, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply { topMargin = dp(10) })
-        // Share + engrenagem lado a lado, sempre visiveis. Share nasce
-        // desabilitado (cinza) porque nao ha o que compartilhar; a engrenagem
-        // fica aqui porque ela configura justamente o share.
+        // Share + gear side by side, always visible. Share starts
+        // disabled (gray) because there is nothing to share; the gear
+        // stays here because it configures exactly the share.
         val shareRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -441,14 +441,14 @@ class MainActivity : AppCompatActivity() {
         page.addView(actionButton, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, dp(42)
         ).apply { topMargin = dp(10) })
-        // O botao de download fica imediatamente abaixo da barra do link: a
-        // barra e o ultimo controle antes da acao principal.
+        // The download button sits right below the link bar: the
+        // bar is the last control before the main action.
         return page
     }
 
     /**
-     * O campo de link, no desenho do `timeLogBar` do Super Capture: 42dp,
-     * `bg_field`, texto 14sp com 12dp de respiro, uma linha so.
+     * The link field, in Super Capture's `timeLogBar` design: 42dp,
+     * `bg_field`, 14sp text with 12dp of breathing room, a single line.
      */
     private fun linkField(): EditText = EditText(this).apply {
         hint = "Paste Link Here"
@@ -471,9 +471,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Botao Paste: accent cheio, glifo e palavra, como o `saveButton` do
-     * Super Capture (icone + texto num LinearLayout horizontal, nunca um Button
-     * com compound drawable).
+     * Paste button: solid accent, glyph and word, like Super Capture's `saveButton`
+     * (icon + text in a horizontal LinearLayout, never a Button
+     * with a compound drawable).
      */
     private fun pasteButton(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
@@ -482,9 +482,9 @@ class MainActivity : AppCompatActivity() {
         isClickable = true
         isFocusable = true
         setPadding(dp(10), 0, dp(10), 0)
-        // Largura fixa e enxuta: `WRAP_CONTENT` nao soma o padding do texto na
-        // linha, e o botao fechava antes da margem; ja 120dp ficava largo demais
-        // para um alvo de duas palavras. 88dp = 16 do glifo + 5 do vao + "Paste".
+        // Fixed, lean width: `WRAP_CONTENT` does not add the text padding on the
+        // line, and the button closed before the margin; 120dp was too wide
+        // for a two-word target. 88dp = 16 glyph + 5 gap + "Paste".
         layoutParams = LinearLayout.LayoutParams(dp(88), dp(42))
         setOnClickListener { pasteFromClipboard() }
 
@@ -508,7 +508,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    /** Cola o primeiro link da area de transferencia no campo, sem baixar. */
+    /** Pastes the first link from the clipboard into the field, without downloading. */
     private fun pasteFromClipboard() {
         val clip = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
         val text = clip?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
@@ -524,7 +524,7 @@ class MainActivity : AppCompatActivity() {
         lastUrl = url
     }
 
-    // ---------------------------------------------------------- aba Settings
+    // ---------------------------------------------------------- Settings tab
 
     private fun openShareQuality() {
         ShareQualityDialog(
@@ -535,7 +535,7 @@ class MainActivity : AppCompatActivity() {
         ).show()
     }
 
-    // ------------------------------------------------------------- estado UI
+    // -------------------------------------------------------------- UI state
 
     private fun prefsLoadState() {
         paintSettings()
@@ -543,7 +543,7 @@ class MainActivity : AppCompatActivity() {
         renderHistory()
     }
 
-    /** A linha de destino mostra o template ativo (o ultimo usado). */
+    /** The destination row shows the active template (the last used one). */
     private fun paintSettings() {
         if (!::folderValue.isInitialized) return
         val label = prefs.destLabel.ifBlank { Downloader.DEFAULT_LABEL }
@@ -552,14 +552,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Chip selecionado = accent cheio com texto escuro; os outros contornados.
-     * A escada do Custom e cortada no que o post oferece.
+     * Selected chip = solid accent with dark text; the others outlined.
+     * The Custom ladder is cut to what the post offers.
      */
     private fun paintChips() {
         if (!::qualityRow.isInitialized) return
         val selectedPreset = prefs.quality.preset
 
-        // So os chips: o ultimo filho da fileira e a engrenagem (FrameLayout).
+        // Chips only: the last child of the row is the gear (FrameLayout).
         for (i in Quality.ALL.indices) {
             val chip = qualityRow.getChildAt(i) as? TextView ?: continue
             val isSelected = Quality.ALL[i].preset == selectedPreset
@@ -592,20 +592,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * History: os tres ultimos links. Cada linha mostra o link em uma linha, com
-     * elipse no fim; tocar preenche o campo (nao baixa, para nao gastar dados
-     * por engano). Sem itens, o bloco inteiro fica escondido.
+     * History: the last three links. Each row shows the link on one line, with
+     * an ellipsis at the end; tapping fills the field (does not download, to avoid wasting data
+     * by mistake). With no items, the whole block stays hidden.
      */
     /**
-     * History: quadrado de altura fixa com as tres ultimas linhas, cada uma com
-     * os dois botoes (copiar o link / compartilhar o arquivo baixado).
+     * History: fixed-height square with the last three rows, each one with
+     * both buttons (copy the link / share the downloaded file).
      *
-     * Vazio mostra "No History" no lugar das linhas, mas os botoes continuam ali:
-     * o bloco nao muda de forma conforme o uso.
+     * Empty shows "No History" in place of the rows, but the buttons remain there:
+     * the block does not change shape with use.
      */
     private fun renderHistory() {
         if (!::historyCard.isInitialized) return
-        // Guarda o topo visivel para nao pular quando a lista so foi repintada.
+        // Keeps the visible top so it does not jump when the list was just repainted.
         val previousTop = historyScroll.scrollY
         val previousCount = historyCard.childCount
         historyCard.removeAllViews()
@@ -636,8 +636,8 @@ class MainActivity : AppCompatActivity() {
                 setPadding(dp(if (hasThumb) 6 else 10), dp(4), dp(4), dp(4))
             }
 
-            // Quadrado com o primeiro frame: e o unico jeito de saber QUAL video
-            // e aquela linha sem abrir o link.
+            // Square with the first frame: it is the only way to know WHICH video
+            // that row is without opening the link.
             if (entry.thumb.isNotBlank()) {
                 val file = java.io.File(entry.thumb)
                 if (file.exists()) {
@@ -653,7 +653,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            // O link, clicavel: toca e preenche o campo (nao baixa sozinho).
+            // The link, clickable: tap and it fills the field (does not download by itself).
             row.addView(
                 TextView(this).apply {
                     text = entry.link
@@ -675,7 +675,7 @@ class MainActivity : AppCompatActivity() {
                     .apply { marginEnd = dp(4) }
             )
 
-            // Copiar o link.
+            // Copy the link.
             row.addView(
                 rowIcon(R.drawable.ic_copy) {
                     val clip = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
@@ -684,7 +684,7 @@ class MainActivity : AppCompatActivity() {
                 }
             )
 
-            // Compartilhar o arquivo ja baixado.
+            // Share the already downloaded file.
             val shareIcon = rowIcon(R.drawable.ic_share) {
                 shareSingle(Uri.parse(entry.uri))
             }
@@ -694,8 +694,8 @@ class MainActivity : AppCompatActivity() {
             }
             row.addView(shareIcon)
 
-            // Linha mais alta que o rowSlot padrao (42dp): a miniatura de 64dp
-            // precisa de espaco e o rowSlot cortava.
+            // Row taller than the default rowSlot (42dp): the 64dp thumbnail
+            // needs the space and rowSlot was clipping it.
             historyCard.addView(
                 row,
                 LinearLayout.LayoutParams(
@@ -708,23 +708,23 @@ class MainActivity : AppCompatActivity() {
 
         val newItemArrived = historyCard.childCount > previousCount
 
-        // O item mais novo entra embaixo, entao a vista padrao e o FIM da lista:
-        // toda chega nova rola para baixo sozinha e o ultimo fica visivel. Rolar
-        // para cima e a excecao (o usuario escolhe), e essa posicao e preservada
-        // quando o render acontece por outro motivo.
+        // The newest item enters at the bottom, so the default view is the END of the list:
+        // every new arrival scrolls down by itself and the last one stays visible. Scrolling
+        // up is the exception (the user chooses it), and that position is preserved
+        // when the render happens for another reason.
         historyScroll.post {
             if (previousTop > 0 && !newItemArrived) {
-                // Repintura sem novidade (troca de qualidade, volta de foco):
-                // devolve a posicao que o usuario tinha escolhido.
+                // Repaint with nothing new (quality change, return from focus):
+                // restores the position the user had chosen.
                 historyScroll.scrollTo(0, previousTop)
             } else {
-                // Item novo entra embaixo: a vista padrao e o fim da lista.
+                // New item enters at the bottom: the default view is the end of the list.
                 historyScroll.fullScroll(View.FOCUS_DOWN)
             }
         }
     }
 
-    /** Icone-botao de 32dp usado nas linhas do History. */
+    /** 32dp icon-button used in the History rows. */
     private fun rowIcon(iconRes: Int, onClick: () -> Unit): FrameLayout {
         val button = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(dp(32), dp(42))
@@ -764,7 +764,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // --------------------------------------------------------------- estados
+    // ---------------------------------------------------------------- states
 
     private fun idle() {
         busy = false
@@ -849,8 +849,8 @@ class MainActivity : AppCompatActivity() {
                     downloaded.add(finalUri)
                 }
 
-                // Miniatura do primeiro frame: e o que identifica o video no
-                // History. Feita aqui (fora da UI) e nao a cada render.
+                // Thumbnail of the first frame: it is what identifies the video in
+                // the History. Made here (off the UI) and not on every render.
                 thumbPath = downloaded.firstOrNull()
                     ?.let { Thumbs.make(this, it) }
                     .orEmpty()
@@ -870,7 +870,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Modo manual: o link fica parado ate o usuario escolher a qualidade. */
+    /** Manual mode: the link waits until the user picks the quality. */
     private fun askQuality(url: String) {
         busy = false
         cancelled = false
@@ -897,8 +897,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Share fica sempre no lugar; o que muda e o estado. Sem arquivo ele fica
-     * contornado e cinza (isEnabled = false), com arquivo vira accent cheio.
+     * Share always stays in place; what changes is the state. Without a file it stays
+     * outlined and gray (isEnabled = false), with a file it becomes solid accent.
      */
     private fun showShareButton() {
         if (!::shareButton.isInitialized) return
@@ -913,7 +913,7 @@ class MainActivity : AppCompatActivity() {
         shareButton.setTextColor(if (hasFile) palette.onAccent else palette.muted)
     }
 
-    /** Ao comecar outro download o arquivo anterior deixa de valer. */
+    /** When another download starts, the previous file no longer applies. */
     private fun hideShareButton() {
         if (!::shareButton.isInitialized) return
         downloaded = ArrayList()
@@ -921,8 +921,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Para onde este download vai. `fromShare` distingue um link que chegou por
-     * share de um que foi colado na tela: so o share respeita o override.
+     * Where this download goes. `fromShare` distinguishes a link that arrived via
+     * share from one pasted on the screen: only the share respects the override.
      */
     private fun dest(): Dest =
         if (prefs.destTree.isBlank()) Dest.NONE else Dest(prefs.destTree, prefs.destLabel)
@@ -936,7 +936,7 @@ class MainActivity : AppCompatActivity() {
                 val left = (total - bytes).coerceAtLeast(0)
                 setDetail("${percent / 10}% • ${size(bytes)} of ${size(total)} • ${size(left)} left")
             } else {
-                // Sem Content-Length: mostra o que ja veio e nada de barra.
+                // No Content-Length: show what has arrived and no bar.
                 progressBar.progress = 0f
                 setDetail("${size(bytes)} downloaded")
             }
@@ -959,13 +959,13 @@ class MainActivity : AppCompatActivity() {
                     "${size(lastBytes)} • ${prefs.destLabel.ifBlank { Downloader.DEFAULT_LABEL }}"
             )
             showShareButton()
-            // Concluido nao tem o que cancelar: o botao do rodape volta a ser
-            // Download, para comecar outro.
+            // Done has nothing to cancel: the footer button goes back to
+            // Download, to start another one.
             setAction(Action.IDLE, "Download")
-            // Abre a folha de compartilhamento sozinha quando o download vem de
-            // um share (o usuario ja estava compartilhando algo, entao o passo
-            // seguinte e o mesmo gesto). Um link colado na tela nao abre nada:
-            // ali o share e uma escolha, e o botao Share fica disponivel.
+            // Opens the share sheet by itself when the download comes from
+            // a share (the user was already sharing something, so the next step
+            // is the same gesture). A link pasted on the screen opens nothing:
+            // there the share is a choice, and the Share button stays available.
             if (fromShare) share()
         }
     }
@@ -982,8 +982,8 @@ class MainActivity : AppCompatActivity() {
     // ----------------------------------------------------------- transcode
 
     /**
-     * Troca o MP4 baixado pelo M4A extraido. O video sai do disco: o preset e
-     * "so audio", guardar os dois arquivos encheria a pasta.
+     * Replaces the downloaded MP4 with the extracted M4A. The video leaves the disk: the preset is
+     * "audio only", keeping both files would fill the folder.
      */
     private fun toAudioOnly(target: Downloader.Target): Uri {
         val local = Downloader.localCopy(this, target.uri)
@@ -1007,11 +1007,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun transcodeForWhatsApp(target: Downloader.Target): Uri {
-        // Duracao e lado curto vem do ARQUIVO, nao do modelo do post.
+        // Duration and short side come from the FILE, not from the post model.
         val probe = Downloader.probe(this, target.uri)
         val seconds = ((probe?.durationMs ?: 0L) / 1000).coerceAtLeast(1)
-        // A copia no cache existe so para o FFmpeg ler; sem apagar, cada
-        // compressao deixava o arquivo original (dezenas de MB) no cache.
+        // The cache copy exists only for FFmpeg to read; without deleting it, every
+        // compression left the original file (tens of MB) in the cache.
         val local = Downloader.localCopy(this, target.uri)
         val result = try {
             Transcode.fitForWhatsApp(
@@ -1019,16 +1019,16 @@ class MainActivity : AppCompatActivity() {
                 source = local,
                 durationSeconds = seconds
             ) { fraction ->
-                // Mesma barra do download, agora enchendo enquanto o ffmpeg
-                // processa: sem isso o bloco dizia "Compressing" com a barra
-                // parada em 100% e nada indicava progresso.
+                // Same bar as the download, now filling while ffmpeg
+                // processes: without it the block said "Compressing" with the bar
+                // stuck at 100% and nothing indicated progress.
                 post {
                     progressBar.progress = fraction
-                    // O titulo ja diz "Compressing": a linha de baixo mostra so o
-                    // andamento, sem repetir a palavra.
+                    // The title already says "Compressing": the line below shows only the
+                    // progress, without repeating the word.
                     val percent = (fraction * 100).toInt()
-                    // ETA pela velocidade MEDIDA: uma compressao longa levava
-                    // minutos sem qualquer previsao e parecia travada.
+                    // ETA from the MEASURED speed: a long compression took
+                    // minutes without any estimate and looked stuck.
                     val elapsed = (System.currentTimeMillis() - compressStart) / 1000
                     val eta = if (fraction > 0.02f) (elapsed / fraction * (1 - fraction)).toInt() else 0
                     val left = when {
@@ -1042,8 +1042,8 @@ class MainActivity : AppCompatActivity() {
         } finally {
             runCatching { local.delete() }
         }
-        // Se a "compressao" nao diminuiu nada, fica o arquivo original: trocar
-        // por um maior so gastaria espaco e perderia qualidade de graca.
+        // If the "compression" reduced nothing, the original file stays: swapping
+        // for a larger one would only waste space and lose quality for free.
         if (result.bytes >= target.bytes) {
             post { setDetail("${size(target.bytes)} already fits, nothing to reduce") }
             return target.uri
@@ -1074,7 +1074,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent.createChooser(send, "Share Video"))
     }
 
-    // ------------------------------------------------------------- pasta SAF
+    // ------------------------------------------------------------ SAF folder
 
     private fun onFolderPicked(tree: Uri?) {
         if (tree == null) return
@@ -1102,15 +1102,15 @@ class MainActivity : AppCompatActivity() {
         }.getOrNull().orEmpty().ifBlank { "Selected Folder" }
     }
 
-    // ------------------------------------------------------- pecas do design
+    // --------------------------------------------------------- design pieces
 
     /**
-     * Pagina com o status no topo e os controles colados no rodape.
+     * Page with the status at the top and the controls glued to the footer.
      *
-     * Os apps sao desenhados de baixo para cima, entao o link (e o botao) ficam
-     * no polegar; o status e a excecao pedida: ele fica no topo, sempre visivel,
-     * separado do resto por um spacer com peso. Sem o spacer o conteudo sobe e
-     * o botao de acao nao encosta no fim da tela.
+     * Apps are designed bottom-up, so the link (and the button) sit
+     * under the thumb; the status is the requested exception: it stays at the top, always visible,
+     * separated from the rest by a spacer with weight. Without the spacer the content rises and
+     * the action button does not touch the bottom of the screen.
      */
     private fun page(): LinearLayout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
@@ -1119,10 +1119,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Titulo de secao do Super Capture: 12sp, caixa alta, bold, letterSpacing
-     * 0.09, muted, `padding(10, 2, 10, 6)` e 6dp abaixo. Ele fica SOLTO acima do
-     * cartao, nunca dentro dele — e o que faz a pagina ler como tela de app e
-     * nao como painel de controle.
+     * Super Capture section title: 12sp, caps, bold, letterSpacing
+     * 0.09, muted, `padding(10, 2, 10, 6)` and 6dp below. It sits LOOSE above the
+     * card, never inside it — that is what makes the page read like an app screen and
+     * not like a control panel.
      */
     private fun sectionTitle(text: String): TextView = TextView(this).apply {
         this.text = text
@@ -1184,7 +1184,7 @@ class MainActivity : AppCompatActivity() {
         isFocusable = true
     }
 
-    /** 10dp entre blocos principais, a regua do Super Capture. */
+    /** 10dp between main blocks, Super Capture's ruler. */
     private fun blockParams(topMarginDp: Int = 10): LinearLayout.LayoutParams =
         LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
@@ -1192,8 +1192,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setAction(kind: Action, label: String) {
         action = kind
-        // O botao fica sempre visivel: ocioso ele E o "Download", que le o link
-        // do campo; nos outros estados vira Cancel / Share Again / Try Again.
+        // The button is always visible: idle it IS the "Download", which reads the link
+        // from the field; in the other states it becomes Cancel / Share Again / Try Again.
         actionButton.visibility = View.VISIBLE
         actionButton.text = label
         actionButton.alpha = 1f
@@ -1240,7 +1240,7 @@ class MainActivity : AppCompatActivity() {
 
     // --------------------------------------------------------------- helpers
 
-    /** Escreve a linha de detalhe e so a mostra quando ha conteudo. */
+    /** Writes the detail line and only shows it when there is content. */
     private fun setDetail(text: String) {
         detailView.text = text
         detailView.visibility = if (text.isBlank()) View.GONE else View.VISIBLE
@@ -1259,13 +1259,13 @@ class MainActivity : AppCompatActivity() {
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     companion object {
-        /** Altura do bloco de status: barra grossa com o texto por cima. */
+        /** Status block height: thick bar with the text on top. */
         private const val STATUS_HEIGHT_DP = 54
 
         private const val STATE_HANDLED_URL = "handled_url"
         private const val STATE_LINK_TEXT = "link_text"
 
-        /** Altura da linha do History com miniatura (64dp de imagem + respiro). */
+        /** History row height with thumbnail (64dp image + breathing room). */
         private const val HISTORY_ROW_DP = 72
     }
 }

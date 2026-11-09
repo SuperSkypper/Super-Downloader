@@ -1,43 +1,43 @@
 # Super Downloader
 
-App Android que recebe um link do X/Twitter (compartilhado ou colado), baixa o
-video na qualidade escolhida e oferece o arquivo no share sheet.
+Android app that receives a link from X/Twitter (shared or pasted), downloads the
+video at the chosen quality and offers the file in the share sheet.
 
-Nome visivel no Android: **Downloader** (`app_name`). O `applicationId` continua
-`app.skypper.superdownloader` — trocar isso instala um app novo, sem prefs
-nem grants do SAF. A pasta de destino tambem continua `Download/Super Downloader`.
+Visible name on Android: **Downloader** (`app_name`). The `applicationId` stays
+`app.skypper.superdownloader` — changing it installs a new app, without prefs
+or SAF grants. The destination folder also stays `Download/Super Downloader`.
 
-## Telas
+## Screens
 
-Uma pagina so, no desenho do Super Capture (a referencia de UI do projeto):
+A single page, following the Super Capture design (the project's UI reference):
 
-- Uma pagina so. De cima para baixo: barra `Download Folder:` (abre o seletor
-  de pasta do SAF), bloco de status, botao Share (so com download concluido),
-  History (ocupa o resto da tela), Quality + engrenagem, barra do link, botao
-  Download/Cancel no rodape.
-- Nao existe aba Settings nem sistema de templates: a pasta e uma so e a
-  engrenagem guarda a **qualidade de share** (ver abaixo).
+- A single page. Top to bottom: `Download Folder:` bar (opens the SAF folder
+  picker), status block, Share button (only with the download finished),
+  History (takes the rest of the screen), Quality + gear, link bar, Download/Cancel
+  button at the bottom.
+- There is no Settings tab and no template system: there is only one folder and the
+  gear stores the **share quality** (see below).
 
-Tudo em ingles na interface, inclusive hints.
+Everything in English in the UI, including hints.
 
-## Arquivos
+## Files
 
-- `MainActivity.kt` — as duas abas, a tab bar (overlay com hairline, indicador
-  `accentDim` contornado), o download, o share e o History.
-- `Palette.kt` — a mesma classe do Super Capture: resolve `colors.xml` e oferece
-  `alpha()`/`roundRect()`; nada de constante `Int` em companion.
+- `MainActivity.kt` — the two tabs, the tab bar (overlay with hairline, `accentDim`
+  outlined indicator), the download, the share and the History.
+- `Palette.kt` — the same class as Super Capture: resolves `colors.xml` and offers
+  `alpha()`/`roundRect()`; no `Int` constant in the companion.
 - `Models.kt` — `Quality`/`QualityPreset` (WhatsApp, Highest Quality, Custom +
-  escada 4K…144p) e `MediaItem` com as variantes do post.
-- `Resolver.kt` — link -> lista de MP4 com as variantes (`master.m3u8` do tweet).
-- `Downloader.kt` — grava no SAF escolhido ou em `Download/Super Downloader`.
-- `Transcode.kt` — recomprime quando o preset WhatsApp passa de 62 MB.
-- `Thumbs.kt` — primeiro frame do video, quadrado, para a linha do History.
-- `Prefs.kt` — destino, preset, altura do Custom, toggle automatico e o History
-  (10 itens: link + uri do arquivo + caminho da miniatura).
+  the 4K…144p ladder) and `MediaItem` with the post variants.
+- `Resolver.kt` — link -> list of MP4s with the variants (the tweet's `master.m3u8`).
+- `Downloader.kt` — writes to the chosen SAF location or to `Download/Super Downloader`.
+- `Transcode.kt` — recompresses when the WhatsApp preset goes over 62 MB.
+- `Thumbs.kt` — first frame of the video, square, for the History row.
+- `Prefs.kt` — destination, preset, Custom height, automatic toggle and the History
+  (10 items: link + file uri + thumbnail path).
 
-## Barra de status (estados)
+## Status bar (states)
 
-Exatamente cinco, e nada mais escreve nela:
+Exactly five, and nothing else writes to it:
 
 - `Waiting for Download`
 - `Downloading`
@@ -45,60 +45,60 @@ Exatamente cinco, e nada mais escreve nela:
 - `Cancelling`
 - `Download Complete`
 
-A linha de detalhe, dentro do bloco e abaixo do titulo, mostra o que muda:
-`78% · 19,9 MB of 25,4 MB · 5,5 MB left`, o limite na compressao, o resumo no
-fim, ou a mensagem de erro em vermelho. Coisas que NAO sao estado (link colado,
-qualidade escolhida, link copiado) nao tocam no status.
+The detail line, inside the block and below the title, shows whatever changes:
+`78% · 19,9 MB of 25,4 MB · 5,5 MB left`, the limit during compression, the summary
+at the end, or the error message in red. Things that are NOT state (pasted link,
+chosen quality, copied link) do not touch the status.
 
-## Qualidade de share (a engrenagem)
+## Share quality (the gear)
 
-O preset em QUALITY vale para o link colado no campo; a engrenagem
-(`ShareQualityDialog`) define a qualidade usada quando o app e aberto pela folha
-de compartilhamento do sistema. `prefs.qualityFor(fromShare)` decide, e
-`fromShare` vem do `ACTION_SEND` do intent. Desligado = usa o preset da tela.
-Ligar o toggle sem nada escolhido herda o preset da tela, para o estado nao ficar
-ambiguo (nenhum chip marcado).
+The preset in QUALITY applies to the link pasted into the field; the gear
+(`ShareQualityDialog`) defines the quality used when the app is opened from the
+system share sheet. `prefs.qualityFor(fromShare)` decides, and
+`fromShare` comes from the intent's `ACTION_SEND`. Off = uses the screen preset.
+Turning the toggle on with nothing chosen inherits the screen preset, so the state
+is not ambiguous (no chip selected).
 
-Verificado no aparelho, mesmo video, dois caminhos: `ACTION_SEND` com share
-`Highest Quality` gerou `angieverses_..._2114529898609930240.mp4` (19,9 MB,
-720x1280, sem recompressao) enquanto a tela principal estava em WhatsApp; o
-mesmo link digitado no campo gerou `..._whatsapp.mp4`.
-O painel usa a linguagem do app (fundo do tema, moldura do toggle, chips de
-34dp) e **duas bordas**, nao tres: painel + linha do toggle.
+Verified on the device, same video, two paths: `ACTION_SEND` with share
+`Highest Quality` produced `angieverses_..._2114529898609930240.mp4` (19,9 MB,
+720x1280, no recompression) while the main screen was on WhatsApp; the
+same link typed into the field produced `..._whatsapp.mp4`.
+The panel uses the app's language (theme background, toggle outline, 34dp chips)
+and **two borders**, not three: panel + toggle row.
 
-## Design (o do Super Capture)
+## Design (the Super Capture one)
 
-- Paleta em `res/values/colors.xml`, copia fiel: `bg #0B0D10`, `surface #14181F`,
+- Palette in `res/values/colors.xml`, faithful copy: `bg #0B0D10`, `surface #14181F`,
   `surface_variant #1C222B`, `border #2A323D`, `text #E6EDF3`,
   `text_muted #8B98A8`, `accent #58A6FF`, `accent_dim #1F3A5F`,
   `on_accent #08121F`, `danger #F85149`, `warn #D29922`, `ok #3FB950`.
-- Tema `Theme.SuperDownloader` = `Theme.Material3.Dark.NoActionBar`.
-- Pagina com `10dp` de margem; titulo de secao solto (12sp, ALL CAPS, bold,
-  `letterSpacing 0.09`, muted, `padding(10,2,10,6)`, 6dp abaixo) acima do cartao;
-  cartao `bg_card` (surface, 12dp, 1dp de borda, 6dp de padding); linha em
-  `rowSlot` (10dp lateral, 4dp vertical, filho de 42dp); 10dp entre blocos.
-- Bloco de status: 54dp de altura, titulo 15sp centralizado, com a linha de
-  detalhe abaixo quando ha o que dizer.
-- History: linha de 72dp quando tem miniatura (imagem de 64dp, canto
-  esquerdo) e 42dp quando nao tem; o cartao cresce de baixo para cima.
-- Chip: 34dp, 12dp de raio; selecionado = `accent` cheio com texto `on_accent`;
-  os outros = `bg_action` com texto muted.
-- Barra de link = `timeLogBar` do Super Capture: campo de 42dp com `bg_field`,
-  14sp, 12dp de padding interno; botao accent de 88dp ao lado com glifo +
-  palavra (largura fixa: `WRAP_CONTENT` nao soma o padding do texto).
+- Theme `Theme.SuperDownloader` = `Theme.Material3.Dark.NoActionBar`.
+- Page with a `10dp` margin; loose section title (12sp, ALL CAPS, bold,
+  `letterSpacing 0.09`, muted, `padding(10,2,10,6)`, 6dp below) above the card;
+  card `bg_card` (surface, 12dp, 1dp border, 6dp padding); row in
+  `rowSlot` (10dp horizontal, 4dp vertical, 42dp child); 10dp between blocks.
+- Status block: 54dp tall, 15sp centered title, with the detail line
+  below it when there is something to say.
+- History: 72dp row when it has a thumbnail (64dp image, left
+  corner) and 42dp when it does not; the card grows from the bottom up.
+- Chip: 34dp, 12dp radius; selected = full `accent` with `on_accent` text;
+  the others = `bg_action` with muted text.
+- Link bar = Super Capture's `timeLogBar`: 42dp field with `bg_field`,
+  14sp, 12dp internal padding; 88dp accent button beside it with glyph +
+  word (fixed width: `WRAP_CONTENT` does not add up the text padding).
 
-## Copy: Title Case em rotulo, sentence case em descricao
+## Copy: Title Case in labels, sentence case in descriptions
 
-Regra do usuario: **tudo que e rotulo tem a primeira letra de cada palavra em
-maiuscula**; descricao, hint e mensagem de erro ficam em sentence case.
+User rule: **everything that is a label has the first letter of every word in
+uppercase**; description, hint and error message stay in sentence case.
 
-- Rotulos: `Paste`, `Paste Link Here` (placeholder), `Download`, `Share`,
+- Labels: `Paste`, `Paste Link Here` (placeholder), `Download`, `Share`,
   `Cancel`, `Try Again`, `Automatic Quality`, `Download Folder`, `No History`,
-  e os estados `Waiting For Download` / `Download Complete`.
-- Descricoes: hints dos cartoes, `Reading the link…`, `connecting…`, mensagens de
-  erro, e a linha de detalhe do status.
-- Nenhuma string visivel em portugues: as mensagens de `Downloader`,
-  `Resolver` e `Transcode` aparecem na linha de detalhe do status.
+  and the states `Waiting For Download` / `Download Complete`.
+- Descriptions: card hints, `Reading the link…`, `connecting…`, error
+  messages, and the status detail line.
+- No visible string in Portuguese: the messages from `Downloader`,
+  `Resolver` and `Transcode` appear in the status detail line.
 
 ## Build
 
@@ -107,18 +107,18 @@ maiuscula**; descricao, hint e mensagem de erro ficam em sentence case.
 ```
 
 - JDK 21 Temurin, AGP 8.7.3, Kotlin 2.1.0, compileSdk 35, minSdk 29.
-- `build.bat` exige `JAVA_HOME` e `ANDROID_HOME` no ambiente e compila a partir da
-  propria pasta. Para caminhos fixos de uma maquina, use `build.local.bat` (fora do
-  controle de versao) — e o que roda no dia a dia do desenvolvimento.
-- Se o projeto estiver numa pasta sincronizada (Google Drive, OneDrive), aponte
-  `SD_INIT_SCRIPT` para um init script que mova `buildDir` para fora dela: o
-  resource merger falha com `AccessDeniedException` nos arquivos intermediarios.
-- APK padrao: `app/build/outputs/apk/debug/app-debug.apk` (ou o caminho definido
-  pelo init script).
-- `ffmpeg-kit` vem de `dev.ffmpegkit-maintained:ffmpeg-kit-min-gpl` (o
-  `com.arthenica` saiu do Maven Central em 2025).
+- `build.bat` requires `JAVA_HOME` and `ANDROID_HOME` in the environment and builds from
+  its own folder. For machine-specific fixed paths, use `build.local.bat` (outside
+  version control) — that is what runs in day-to-day development.
+- If the project lives in a synced folder (Google Drive, OneDrive), point
+  `SD_INIT_SCRIPT` to an init script that moves `buildDir` outside of it: the
+  resource merger fails with `AccessDeniedException` on the intermediate files.
+- Default APK: `app/build/outputs/apk/debug/app-debug.apk` (or the path defined
+  by the init script).
+- `ffmpeg-kit` comes from `dev.ffmpegkit-maintained:ffmpeg-kit-min-gpl` (the
+  `com.arthenica` one left Maven Central in 2025).
 
-## Teste no aparelho
+## Testing on the device
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -127,68 +127,68 @@ adb shell am start -a android.intent.action.SEND -t text/plain \
   -n app.skypper.superdownloader/.MainActivity
 ```
 
-`Automatic Quality` ligado baixa na hora; desligado o app carrega o link e
-espera o toque em `Download` (o status fica em `Waiting for Download`).
-Arquivo em `/sdcard/Download/Super Downloader/<usuario>_<mediaId>_<preset>.mp4`.
+`Automatic Quality` on downloads right away; off, the app loads the link and
+waits for the `Download` tap (the status stays at `Waiting for Download`).
+File at `/sdcard/Download/Super Downloader/<usuario>_<mediaId>_<preset>.mp4`.
 
-## Limite do WhatsApp (nao e 16 MB)
+## WhatsApp limit (it is not 16 MB)
 
-O FAQ oficial diz **64 MB** (conexao lenta) / 100 MB (rapida) para video enviado
-como midia, com teto de 720p; documento vai a 2 GB sem recompressao. O app usa
-**62 MB** de orcamento. Blog de terceiro repetindo "16 MB" se refere a foto e
-status, nao a video — com o numero errado o app recomprimia video que caberia.
+The official FAQ says **64 MB** (slow connection) / 100 MB (fast) for video sent
+as media, capped at 720p; a document goes up to 2 GB without recompression. The app uses
+a **62 MB** budget. Third-party blogs repeating "16 MB" refer to photo and
+status, not video — with the wrong number the app was recompressing video that would have fit.
 
-## Auditoria (estado do codigo)
+## Audit (code state)
 
-Feita com varredura estatica; o que sobrou de fora:
+Done with a static sweep; what was left out:
 
-- Sem funcao privada sem uso, sem membro publico sem uso, sem drawable orfao,
-  sem import sem uso, sem TODO/log de debug.
-- Removidos: `cardParams`, `Dest.display`, `bestFor`/`bestHeight`/`maxHeight`,
-  `clearDest`, seis acessores da `Palette` e cinco cores do `colors.xml`,
-  sete drawables (`bg_chip_selected`, `bg_pill*`, `ic_download`, `ic_link`,
+- No unused private function, no unused public member, no orphan drawable,
+  no unused import, no TODO/debug log.
+- Removed: `cardParams`, `Dest.display`, `bestFor`/`bestHeight`/`maxHeight`,
+  `clearDest`, six `Palette` accessors and five colors from `colors.xml`,
+  seven drawables (`bg_chip_selected`, `bg_pill*`, `ic_download`, `ic_link`,
   `ic_retry`, `progress_horizontal`).
 
-Bugs reais que a auditoria encontrou (e que o build verde nao mostrava):
+Real bugs the audit found (and that the green build did not show):
 
-- **A barra `Download Folder:` abria o Share Quality**, nao o seletor de pasta:
-  um replace em massa trocou o listener dos dois. `folderLauncher` ficou sem
-  nenhuma chamada — o sintoma que denunciou.
-- **`fromShare` lia `Activity.intent`**, que `onNewIntent` NAO atualiza: o
-  segundo share era classificado com a action da primeira abertura. Agora a
-  action vem por parametro de `handle(url, isShare)`.
-- **A copia para o cache no transcode nunca era apagada**: cada compressao
-  deixava o original (dezenas de MB) em `cacheDir/src`.
+- **The `Download Folder:` bar opened Share Quality**, not the folder picker:
+  a mass replace swapped the listener of both. `folderLauncher` ended up with
+  no callers — the symptom that gave it away.
+- **`fromShare` read `Activity.intent`**, which `onNewIntent` does NOT update: the
+  second share was classified with the action from the first launch. Now the
+  action comes as a parameter of `handle(url, isShare)`.
+- **The copy into the cache during transcode was never deleted**: every compression
+  left the original (dozens of MB) in `cacheDir/src`.
 
-## Armadilhas conhecidas
+## Known pitfalls
 
-- O nome do arquivo usa o **media id**, nao o id do tweet — sao diferentes no X
-  (`melt_simp_2076784277404991489.mp4` para o tweet `2114510211444527226`).
-- `minSdk 29` e proposital: `MediaStore.Downloads` + `IS_PENDING` dispensam
-  permissao de armazenamento e evitam arquivo pela metade na galeria.
-- `launchMode=singleTask`: um segundo link chega em `onNewIntent`, que cancela o
-  download anterior e enfileira no mesmo executor de uma thread.
-- **Iterar `childCount` de uma fileira mista quebra o app.** `paintChips` fazia
-  `getChildAt(i) as TextView` em todos os filhos da fileira de qualidade; quando
-  a engrenagem (FrameLayout) entrou no fim dela, o launch morreu com
-  `ClassCastException: FrameLayout cannot be cast to TextView`. Percorra os
-  indices do modelo (`Quality.ALL.indices`) e use `as?`.
-- **Um `setDetail` que chama a si mesmo mata o app no launch** (`StackOverflowError`,
-  sem aviso no build). Um regex que trocou `detailView.text = x` por
-  `setDetail(x)` tambem reescreveu o corpo do proprio helper. Depois de qualquer
-  varredura dessas, ler o corpo do helper antes de confiar.
-- **`uiautomator dump` reporta `bounds="[0,0][0,0]"`** para o rotulo da tab bar e
-  para o botao de acao. E limitacao do dump, nao layout quebrado: confirme por
-  `screencap` antes de "consertar".
-- **`WRAP_CONTENT` de um `LinearLayout` horizontal nao soma o padding do texto**:
-  um botao com `WRAP_CONTENT` fechava 30dp antes da margem da pagina. Largura fixa
-  em dp resolve.
-- O share sheet assume a tela. Quando `mCurrentFocus` responde outro pacote
-  (WhatsApp `ExternalShareAlias`), o usuario esta compartilhando de verdade:
-  verifique por artefato em vez de continuar tocando a tela.
-- **O X so publica poucas alturas.** Num post 720x1280 existem 320/480/720 no
-  `master.m3u8`; 4K/1440p/1080p nao existem. A escada do Custom corta no maximo do
-  post (`Quality.ladderFor`) e `Downloader.pick` cai para o maior disponivel.
-- **O x264 nao entrega o bitrate pedido.** Uma passada pedindo 2.500k num video de
-  85 s gerou 26,5 MB contra 15 MB de orcamento. `Transcode` mede o arquivo e faz
-  uma segunda passada corrigida pelo tamanho real.
+- The file name uses the **media id**, not the tweet id — they are different on X
+  (`melt_simp_2076784277404991489.mp4` for the tweet `2114510211444527226`).
+- `minSdk 29` is intentional: `MediaStore.Downloads` + `IS_PENDING` do away with the
+  storage permission and prevent a half-written file in the gallery.
+- `launchMode=singleTask`: a second link arrives in `onNewIntent`, which cancels the
+  previous download and queues on the same single-threaded executor.
+- **Iterating `childCount` of a mixed row breaks the app.** `paintChips` did
+  `getChildAt(i) as TextView` on every child of the quality row; when
+  the gear (FrameLayout) was added at its end, the launch died with
+  `ClassCastException: FrameLayout cannot be cast to TextView`. Iterate the model
+  indices (`Quality.ALL.indices`) and use `as?`.
+- **A `setDetail` that calls itself kills the app at launch** (`StackOverflowError`,
+  with no warning from the build). A regex that replaced `detailView.text = x` with
+  `setDetail(x)` also rewrote the body of the helper itself. After any sweep like
+  that, read the helper body before trusting it.
+- **`uiautomator dump` reports `bounds="[0,0][0,0]"`** for the tab bar label and
+  for the action button. That is a limitation of the dump, not a broken layout: confirm with
+  `screencap` before "fixing" it.
+- **`WRAP_CONTENT` on a horizontal `LinearLayout` does not add up the text padding**:
+  a button with `WRAP_CONTENT` closed 30dp short of the page margin. A fixed width
+  in dp solves it.
+- The share sheet takes over the screen. When `mCurrentFocus` answers with another package
+  (WhatsApp `ExternalShareAlias`), the user is really sharing:
+  check by artifact instead of continuing to tap the screen.
+- **X only publishes a few heights.** In a 720x1280 post only 320/480/720 exist in the
+  `master.m3u8`; 4K/1440p/1080p do not exist. The Custom ladder cuts at the post's
+  maximum (`Quality.ladderFor`) and `Downloader.pick` falls back to the largest available.
+- **x264 does not deliver the requested bitrate.** A single pass asking for 2,500k on an 85 s
+  video produced 26,5 MB against a 15 MB budget. `Transcode` measures the file and does
+  a second pass corrected by the real size.
