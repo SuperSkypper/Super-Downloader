@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Barra de progresso do bloco de status: grossa, ocupando a altura do cartao.
+
+  O `progress_horizontal` de 6dp era uma linha fina dentro de um cartao; aqui a
+  barra e o proprio fundo do bloco, com o texto por cima. O trilho e o `surface`
+  e o preenchimento o `accent`, ambos com o raio do cartao para nao vazar canto.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="12dp" />
+            <solid android:color="@color/surface_variant" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <corners android:radius="12dp" />
+                <solid android:color="@color/accent_dim" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

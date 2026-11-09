@@ -1,0 +1,193 @@
+package dev.superskypper.superdownloader
+
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.text.TextUtils
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Switch
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+
+/**
+ * A engrenagem da fileira de qualidade: qual qualidade vale para SHARE.
+ *
+ * O preset de QUALITY na tela governa o link colado no campo; um video
+ * compartilhado de outro lado costuma ter outra necessidade (mandar no WhatsApp,
+ * guardar o melhor possivel), entao aqui se escolhe a qualidade de share.
+ *
+ * Um painel so: fundo do tema, a linha do toggle e os chips direto nele. Antes
+ * havia painel > cartao > linha (tres caixas uma dentro da outra) para mostrar
+ * um toggle e tres chips — o mesmo espaco com tres bordas.
+ */
+class ShareQualityDialog(
+    private val host: Activity,
+    private val palette: Palette,
+    private val prefs: Prefs,
+    private val onChanged: () -> Unit,
+) {
+
+    private lateinit var body: LinearLayout
+
+    fun show() {
+        body = LinearLayout(host).apply { orientation = LinearLayout.VERTICAL }
+
+        val panel = LinearLayout(host).apply {
+            orientation = LinearLayout.VERTICAL
+            background = palette.roundRect(
+                palette.background, dp(16).toFloat(), palette.border, dp(1)
+            )
+            setPadding(dp(10), dp(10), dp(10), dp(8))
+        }
+        panel.addView(
+            TextView(host).apply {
+                text = "Share Quality"
+                setTextColor(palette.text)
+                textSize = 16f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+        )
+        panel.addView(body, LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply { topMargin = dp(10) })
+
+        rebuild()
+
+        val dialog = AlertDialog.Builder(host)
+            .setView(panel)
+            .setNegativeButton("Close", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(palette.accent)
+        }
+        dialog.show()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    }
+
+    private fun rebuild() {
+        body.removeAllViews()
+
+        // Linha do toggle: a moldura E o estado, e a linha inteira alterna.
+        body.addView(
+            LinearLayout(host).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dp(10), 0, dp(10), 0)
+                background = if (prefs.shareQualityEnabled) {
+                    palette.roundRect(palette.surface, dp(10).toFloat(), palette.accent, dp(1))
+                } else {
+                    ContextCompat.getDrawable(host, R.drawable.bg_action)
+                }
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    prefs.shareQualityEnabled = !prefs.shareQualityEnabled
+                    if (prefs.shareQualityEnabled && prefs.shareQualityKey.isBlank()) {
+                        // Nasce igual ao preset da tela: ligar o toggle nao muda
+                        // o comportamento ate o usuario escolher outra coisa.
+                        prefs.shareQualityKey = prefs.effectiveQuality().key
+                    }
+                    onChanged()
+                    rebuild()
+                }
+                addView(
+                    ImageView(host).apply {
+                        setImageResource(R.drawable.ic_check)
+                        imageTintList = ColorStateList.valueOf(
+                            if (prefs.shareQualityEnabled) palette.accent else palette.muted
+                        )
+                    },
+                    LinearLayout.LayoutParams(dp(16), dp(16))
+                )
+                addView(
+                    TextView(host).apply {
+                        text = "Use A Quality For Share"
+                        setTextColor(palette.text)
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                        maxLines = 1
+                        ellipsize = TextUtils.TruncateAt.END
+                    },
+                    LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                        .apply { marginStart = dp(5) }
+                )
+                addView(
+                    Switch(host).apply {
+                        isChecked = prefs.shareQualityEnabled
+                        isClickable = false
+                        isFocusable = false
+                        minHeight = 0
+                        minWidth = 0
+                    }
+                )
+            },
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(42))
+        )
+
+        if (prefs.shareQualityEnabled) {
+            // Os mesmos chips de 34dp da tela principal.
+            val strip = LinearLayout(host).apply { orientation = LinearLayout.HORIZONTAL }
+            Quality.ALL.forEach { preset ->
+                val selected = preset.key == prefs.shareQualityKey
+                strip.addView(
+                    TextView(host).apply {
+                        text = preset.label
+                        textSize = 13f
+                        gravity = Gravity.CENTER
+                        setPadding(dp(12), 0, dp(12), 0)
+                        isClickable = true
+                        isFocusable = true
+                        background = if (selected) {
+                            palette.roundRect(palette.accent, dp(12).toFloat())
+                        } else {
+                            ContextCompat.getDrawable(host, R.drawable.bg_action)
+                        }
+                        setTextColor(if (selected) palette.onAccent else palette.muted)
+                        setOnClickListener {
+                            prefs.shareQualityKey = preset.key
+                            onChanged()
+                            rebuild()
+                        }
+                    },
+                    LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, dp(34)
+                    ).apply { marginEnd = dp(10) }
+                )
+            }
+            body.addView(
+                HorizontalScrollView(host).apply {
+                    isHorizontalScrollBarEnabled = false
+                    addView(strip)
+                },
+                LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = dp(10) }
+            )
+        }
+
+        body.addView(
+            TextView(host).apply {
+                text = if (prefs.shareQualityEnabled) {
+                    "Falls back to the largest available when the post has no such height."
+                } else {
+                    "Off: shared videos use the quality picked on the main screen (${prefs.effectiveQuality().label})."
+                }
+                setTextColor(palette.muted)
+                textSize = 13f
+            },
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { topMargin = dp(8) }
+        )
+    }
+
+    private fun dp(value: Int): Int =
+        (value * host.resources.displayMetrics.density).toInt()
+}

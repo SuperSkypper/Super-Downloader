@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tema: Material3 dark, sem ActionBar, igual ao Super Capture.
+
+  Dark por decisao: o app recebe link, mostra uma barra e some. Um DayNight
+  entraria em modo claro conforme o sistema e essa variante nunca foi desenhada.
+
+  Nao ha styles de widget: cores e formatos vivem em colors.xml e nos drawables
+  bg_*, porque a tela e montada em codigo com Palette.
+-->
+<resources>
+    <style name="Theme.SuperDownloader" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorOnPrimary">@color/on_accent</item>
+        <item name="colorPrimaryContainer">@color/accent_dim</item>
+        <item name="colorOnPrimaryContainer">@color/text</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="colorOnSurfaceVariant">@color/text_muted</item>
+        <item name="colorOutline">@color/border</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:textColorPrimary">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_muted</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

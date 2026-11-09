@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+.kotlin/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Machine-specific SDK path (contains the local username)
+local.properties
+
+# Machine-specific build wrapper (absolute JDK/SDK paths)
+build.local.bat
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Build output
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Signing material — never commit
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Assistant/agent workspace, not part of the app
+.agents/
+
+# OS
+.DS_Store
+Thumbs.db
