@@ -4,7 +4,7 @@ App Android que recebe um link do X/Twitter (compartilhado ou colado), baixa o
 video na qualidade escolhida e oferece o arquivo no share sheet.
 
 Nome visivel no Android: **Downloader** (`app_name`). O `applicationId` continua
-`dev.superskypper.superdownloader` — trocar isso instala um app novo, sem prefs
+`app.skypper.superdownloader` — trocar isso instala um app novo, sem prefs
 nem grants do SAF. A pasta de destino tambem continua `Download/Super Downloader`.
 
 ## Telas
@@ -124,7 +124,7 @@ maiuscula**; descricao, hint e mensagem de erro ficam em sentence case.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -a android.intent.action.SEND -t text/plain \
   --es android.intent.extra.TEXT "https://x.com/<user>/status/<id>" \
-  -n dev.superskypper.superdownloader/.MainActivity
+  -n app.skypper.superdownloader/.MainActivity
 ```
 
 `Automatic Quality` ligado baixa na hora; desligado o app carrega o link e

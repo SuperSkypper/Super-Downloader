@@ -1,4 +1,4 @@
-package dev.superskypper.superdownloader
+package app.skypper.superdownloader
 
 import android.content.ClipboardManager
 import android.content.Context

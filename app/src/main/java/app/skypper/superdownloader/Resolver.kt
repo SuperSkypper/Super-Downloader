@@ -1,4 +1,4 @@
-package dev.superskypper.superdownloader
+package app.skypper.superdownloader
 
 import org.json.JSONObject
 import java.io.IOException

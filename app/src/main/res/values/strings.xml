@@ -1,6 +1,6 @@
 <resources>
     <!-- Nome visivel no launcher e nos ajustes do Android. O applicationId
-         continua dev.superskypper.superdownloader: trocar isso instala um app
+         continua app.skypper.superdownloader: trocar isso instala um app
          novo, sem prefs nem grants do SAF. -->
     <string name="app_name">Downloader</string>
 </resources>

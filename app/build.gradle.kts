@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.superskypper.superdownloader"
+    namespace = "app.skypper.superdownloader"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "dev.superskypper.superdownloader"
+        applicationId = "app.skypper.superdownloader"
         // API 29: MediaStore.Downloads + IS_PENDING sem pedir permissao de storage.
         minSdk = 29
         targetSdk = 35

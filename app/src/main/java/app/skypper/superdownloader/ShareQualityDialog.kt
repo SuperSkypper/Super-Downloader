@@ -1,4 +1,4 @@
-package dev.superskypper.superdownloader
+package app.skypper.superdownloader
 
 import android.app.Activity
 import android.app.AlertDialog

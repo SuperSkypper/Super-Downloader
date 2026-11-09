@@ -4,7 +4,7 @@ An Android app that takes an X/Twitter link — shared into it or pasted — dow
 the video at the quality you pick and hands the file back to the system share sheet.
 
 Visible name on the launcher is **Downloader** (the full name is truncated there).
-Application ID: `dev.superskypper.superdownloader`.
+Application ID: `app.skypper.superdownloader`.
 
 ## What it does
 
@@ -48,7 +48,7 @@ files.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb shell am start -a android.intent.action.SEND -t text/plain \
   --es android.intent.extra.TEXT "https://x.com/<user>/status/<id>" \
-  -n dev.superskypper.superdownloader/.MainActivity
+  -n app.skypper.superdownloader/.MainActivity
 ```
 
 ## How links are resolved

@@ -1,4 +1,4 @@
-package dev.superskypper.superdownloader
+package app.skypper.superdownloader
 
 import android.content.Context
 import android.graphics.Color
